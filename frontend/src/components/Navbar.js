@@ -39,7 +39,15 @@ const Navbar = ({ user, onLogout }) => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => {
+            {navItems
+              .filter(item => {
+                // Hide price table for operators
+                if (item.path === '/price-table' && user.role === 'operator') {
+                  return false;
+                }
+                return true;
+              })
+              .map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               
