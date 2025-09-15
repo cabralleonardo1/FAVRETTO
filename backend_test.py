@@ -519,6 +519,11 @@ def main():
     tester.test_create_price_item_operator()  # Should fail
     tester.test_get_price_table()
     tester.test_get_price_categories()
+    tester.test_update_price_item_admin()
+    tester.test_update_price_item_operator()  # Should fail
+    tester.test_duplicate_code_validation()  # Should fail
+    tester.test_delete_price_item_operator()  # Should fail
+    tester.test_delete_price_item_admin()  # Should succeed
     
     # Budget tests
     print("\n📋 BUDGET TESTS")
