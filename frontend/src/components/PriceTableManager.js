@@ -312,7 +312,7 @@ const PriceTableManager = ({ user }) => {
               />
             </div>
             
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select value={selectedCategory || ""} onValueChange={setSelectedCategory}>
               <SelectTrigger>
                 <div className="flex items-center space-x-2">
                   <Filter className="w-4 h-4 text-gray-400" />
