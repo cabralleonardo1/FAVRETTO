@@ -336,7 +336,7 @@ const PriceTableManager = ({ user }) => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <PriceTag className="w-5 h-5 text-green-600" />
+            <Tag className="w-5 h-5 text-green-600" />
             <span>Itens da Tabela ({filteredItems.length})</span>
           </CardTitle>
         </CardHeader>
