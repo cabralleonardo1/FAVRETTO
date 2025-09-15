@@ -235,7 +235,7 @@ const PriceTableManager = ({ user }) => {
         item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.category.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesCategory = !selectedCategory || item.category === selectedCategory;
+      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
       
       return matchesSearch && matchesCategory;
     });
