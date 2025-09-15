@@ -352,7 +352,7 @@ const BudgetCreator = ({ user }) => {
                   <div className="space-y-2">
                     <Label>Produto/Serviço *</Label>
                     <Select 
-                      value={item.item_id} 
+                      value={item.item_id || ""} 
                       onValueChange={(value) => handleItemChange(index, 'item_id', value)}
                     >
                       <SelectTrigger>
