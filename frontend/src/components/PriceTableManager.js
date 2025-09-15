@@ -596,7 +596,7 @@ const PriceTableManager = ({ user }) => {
               />
             </div>
             
-            <Select value={selectedCategory || ""} onValueChange={setSelectedCategory}>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger>
                 <div className="flex items-center space-x-2">
                   <Filter className="w-4 h-4 text-gray-400" />
@@ -604,7 +604,7 @@ const PriceTableManager = ({ user }) => {
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as categorias</SelectItem>
+                <SelectItem value="all">Todas as categorias</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
