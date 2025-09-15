@@ -491,6 +491,301 @@ class FavrettoAPITester:
         )
         return success
 
+    def test_canvas_colors_initialize(self):
+        """Test canvas colors initialization"""
+        success, response = self.run_test(
+            "Initialize Canvas Colors",
+            "POST",
+            "canvas-colors/initialize",
+            200,
+            token=self.admin_token
+        )
+        return success
+
+    def test_get_canvas_colors(self):
+        """Test getting canvas colors"""
+        success, response = self.run_test(
+            "Get Canvas Colors",
+            "GET",
+            "canvas-colors",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} canvas colors")
+            expected_colors = ["BRANCA", "PRETA", "AZUL", "VERDE", "AMARELA", "VERMELHA"]
+            found_colors = [color['name'] for color in response]
+            print(f"   Colors: {found_colors}")
+            return True
+        return False
+
+    def test_create_canvas_color(self):
+        """Test creating new canvas color"""
+        color_data = {
+            "name": "ROSA",
+            "hex_code": "#FF69B4"
+        }
+        
+        success, response = self.run_test(
+            "Create Canvas Color",
+            "POST",
+            "canvas-colors",
+            200,
+            data=color_data,
+            token=self.admin_token
+        )
+        
+        if success and 'id' in response:
+            self.created_color_id = response['id']
+            return True
+        return False
+
+    def test_update_canvas_color(self):
+        """Test updating canvas color"""
+        if not hasattr(self, 'created_color_id') or not self.created_color_id:
+            print("❌ No color ID available for testing")
+            return False
+            
+        update_data = {
+            "name": "ROSA CLARO",
+            "hex_code": "#FFB6C1"
+        }
+        
+        success, response = self.run_test(
+            "Update Canvas Color",
+            "PUT",
+            f"canvas-colors/{self.created_color_id}",
+            200,
+            data=update_data,
+            token=self.admin_token
+        )
+        return success
+
+    def test_delete_canvas_color(self):
+        """Test deleting canvas color (soft delete)"""
+        if not hasattr(self, 'created_color_id') or not self.created_color_id:
+            print("❌ No color ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Delete Canvas Color",
+            "DELETE",
+            f"canvas-colors/{self.created_color_id}",
+            200,
+            token=self.admin_token
+        )
+        return success
+
+    def test_duplicate_canvas_color(self):
+        """Test duplicate canvas color validation"""
+        color_data = {
+            "name": "BRANCA",  # Should already exist
+            "hex_code": "#FFFFFF"
+        }
+        
+        success, response = self.run_test(
+            "Create Duplicate Canvas Color (Should Fail)",
+            "POST",
+            "canvas-colors",
+            400,
+            data=color_data,
+            token=self.admin_token
+        )
+        return success
+
+    def test_create_budget_with_new_fields(self):
+        """Test budget creation with new fields (area_m2, canvas_color, print_percentage)"""
+        if not self.created_client_id or not self.created_price_item_id:
+            print("❌ Missing client or price item for budget creation")
+            return False
+            
+        budget_data = {
+            "client_id": self.created_client_id,
+            "budget_type": "PLOTAGEM ADESIVO",
+            "items": [
+                {
+                    "item_id": self.created_price_item_id,
+                    "item_name": "Item com Novos Campos",
+                    "quantity": 5.0,
+                    "unit_price": 30.00,
+                    "length": 4.0,
+                    "height": 2.5,
+                    "width": 1.0,
+                    "area_m2": 1.0,  # (4.0 * 2.5 * 1.0) / 10000 = 0.001, but let's use 1.0 for testing
+                    "canvas_color": "BRANCA",
+                    "print_percentage": 75.0,
+                    "subtotal": 150.00
+                }
+            ],
+            "installation_location": "Rio de Janeiro, RJ",
+            "travel_distance_km": 25.0,
+            "observations": "Orçamento com novos campos de teste",
+            "discount_percentage": 5.0
+        }
+        
+        success, response = self.run_test(
+            "Create Budget with New Fields",
+            "POST",
+            "budgets",
+            200,
+            data=budget_data,
+            token=self.admin_token
+        )
+        
+        if success and 'id' in response:
+            self.created_budget_with_fields_id = response['id']
+            print(f"   Budget with new fields total: R$ {response.get('total', 0):.2f}")
+            # Verify new fields are present
+            if response.get('items') and len(response['items']) > 0:
+                item = response['items'][0]
+                print(f"   Item area_m2: {item.get('area_m2')}")
+                print(f"   Item canvas_color: {item.get('canvas_color')}")
+                print(f"   Item print_percentage: {item.get('print_percentage')}")
+            return True
+        return False
+
+    def test_duplicate_budget(self):
+        """Test budget duplication"""
+        if not self.created_budget_id:
+            print("❌ No budget ID available for duplication test")
+            return False
+            
+        success, response = self.run_test(
+            "Duplicate Budget",
+            "POST",
+            f"budgets/{self.created_budget_id}/duplicate",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and 'id' in response:
+            self.duplicated_budget_id = response['id']
+            print(f"   Duplicated budget ID: {self.duplicated_budget_id}")
+            print(f"   Original budget ID: {response.get('original_budget_id')}")
+            print(f"   Status: {response.get('status')}")
+            print(f"   Version: {response.get('version')}")
+            return True
+        return False
+
+    def test_budget_history(self):
+        """Test budget history retrieval"""
+        if not self.created_budget_id:
+            print("❌ No budget ID available for history test")
+            return False
+            
+        success, response = self.run_test(
+            "Get Budget History",
+            "GET",
+            f"budgets/{self.created_budget_id}/history",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} history entries")
+            for entry in response[:2]:  # Show first 2 entries
+                print(f"   - {entry.get('changes', {}).get('action', 'unknown')} by {entry.get('changed_by')} at {entry.get('created_at')}")
+            return True
+        return False
+
+    def test_budget_filters(self):
+        """Test budget filtering"""
+        # Test filter by client
+        success, response = self.run_test(
+            "Filter Budgets by Client",
+            "GET",
+            f"budgets?client_id={self.created_client_id}",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} budgets for client")
+            
+        # Test filter by status
+        success2, response2 = self.run_test(
+            "Filter Budgets by Status",
+            "GET",
+            "budgets?status=DRAFT",
+            200,
+            token=self.admin_token
+        )
+        
+        if success2 and isinstance(response2, list):
+            print(f"   Found {len(response2)} DRAFT budgets")
+            
+        return success and success2
+
+    def test_client_duplicate_validation(self):
+        """Test client duplicate validation (name and phone)"""
+        # Try to create client with same name
+        client_data = {
+            "name": "Empresa Teste LTDA",  # Same name as created client
+            "contact_name": "Maria Santos",
+            "phone": "(11) 88888-8888",
+            "email": "maria@empresateste.com"
+        }
+        
+        success, response = self.run_test(
+            "Create Client with Duplicate Name (Should Fail)",
+            "POST",
+            "clients",
+            400,
+            data=client_data,
+            token=self.admin_token
+        )
+        
+        # Try to create client with same phone
+        client_data2 = {
+            "name": "Outra Empresa LTDA",
+            "contact_name": "Pedro Costa",
+            "phone": "(11) 99999-9999",  # Same phone as created client
+            "email": "pedro@outraempresa.com"
+        }
+        
+        success2, response2 = self.run_test(
+            "Create Client with Duplicate Phone (Should Fail)",
+            "POST",
+            "clients",
+            400,
+            data=client_data2,
+            token=self.admin_token
+        )
+        
+        return success and success2
+
+    def test_client_with_new_fields(self):
+        """Test client creation with new address fields"""
+        client_data = {
+            "name": "Cliente Completo LTDA",
+            "contact_name": "Ana Silva",
+            "phone": "(11) 77777-7777",
+            "email": "ana@clientecompleto.com",
+            "address": "Rua das Flores, 456",
+            "city": "São Paulo",
+            "state": "SP",
+            "zip_code": "01234-567",
+            "observations": "Cliente com todos os campos preenchidos"
+        }
+        
+        success, response = self.run_test(
+            "Create Client with New Address Fields",
+            "POST",
+            "clients",
+            200,
+            data=client_data,
+            token=self.admin_token
+        )
+        
+        if success and 'id' in response:
+            self.created_complete_client_id = response['id']
+            print(f"   Client city: {response.get('city')}")
+            print(f"   Client state: {response.get('state')}")
+            print(f"   Client zip_code: {response.get('zip_code')}")
+            return True
+        return False
+
     def test_delete_client(self):
         """Test client deletion"""
         if not self.created_client_id:
@@ -501,6 +796,21 @@ class FavrettoAPITester:
             "Delete Client",
             "DELETE",
             f"clients/{self.created_client_id}",
+            200,
+            token=self.admin_token
+        )
+        return success
+
+    def test_delete_complete_client(self):
+        """Test deletion of complete client"""
+        if not hasattr(self, 'created_complete_client_id') or not self.created_complete_client_id:
+            print("❌ No complete client ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Delete Complete Client",
+            "DELETE",
+            f"clients/{self.created_complete_client_id}",
             200,
             token=self.admin_token
         )
