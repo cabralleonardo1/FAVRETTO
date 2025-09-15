@@ -416,7 +416,7 @@ const PriceTableManager = ({ user }) => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <PriceTag className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+              <Tag className="w-16 h-16 mx-auto text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 {searchTerm || selectedCategory ? 'Nenhum item encontrado' : 'Nenhum item cadastrado'}
               </h3>
