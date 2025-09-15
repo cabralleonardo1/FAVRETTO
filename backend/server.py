@@ -110,6 +110,13 @@ class PriceTableItemCreate(BaseModel):
     unit_price: float
     category: str
 
+class PriceTableItemUpdate(BaseModel):
+    code: Optional[str] = None
+    name: Optional[str] = None
+    unit: Optional[str] = None
+    unit_price: Optional[float] = None
+    category: Optional[str] = None
+
 class BudgetItem(BaseModel):
     item_id: str
     item_name: str
@@ -255,6 +262,11 @@ async def create_price_item(item_data: PriceTableItemCreate, current_user: User 
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Only admins can modify price table")
     
+    # Check if code already exists
+    existing_item = await db.price_table.find_one({"code": item_data.code, "active": True})
+    if existing_item:
+        raise HTTPException(status_code=400, detail="Item with this code already exists")
+    
     item_obj = PriceTableItem(**item_data.dict())
     await db.price_table.insert_one(item_obj.dict())
     return item_obj
@@ -268,6 +280,38 @@ async def get_price_table(current_user: User = Depends(get_current_user)):
 async def get_price_categories(current_user: User = Depends(get_current_user)):
     categories = await db.price_table.distinct("category", {"active": True})
     return {"categories": categories}
+
+@api_router.put("/price-table/{item_id}", response_model=PriceTableItem)
+async def update_price_item(item_id: str, item_data: PriceTableItemUpdate, current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Only admins can modify price table")
+    
+    update_data = {k: v for k, v in item_data.dict().items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc)
+    
+    # Check if code already exists (if updating code)
+    if "code" in update_data:
+        existing_item = await db.price_table.find_one({"code": update_data["code"], "active": True, "id": {"$ne": item_id}})
+        if existing_item:
+            raise HTTPException(status_code=400, detail="Item with this code already exists")
+    
+    result = await db.price_table.update_one({"id": item_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Price item not found")
+    
+    updated_item = await db.price_table.find_one({"id": item_id})
+    return PriceTableItem(**updated_item)
+
+@api_router.delete("/price-table/{item_id}")
+async def delete_price_item(item_id: str, current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Only admins can modify price table")
+    
+    # Soft delete - mark as inactive
+    result = await db.price_table.update_one({"id": item_id}, {"$set": {"active": False, "updated_at": datetime.now(timezone.utc)}})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Price item not found")
+    return {"message": "Price item deleted successfully"}
 
 # Budget routes
 @api_router.post("/budgets", response_model=Budget)
