@@ -96,7 +96,15 @@ const Navbar = ({ user, onLogout }) => {
         {/* Mobile Navigation */}
         <div className="md:hidden border-t border-gray-200 py-2">
           <div className="flex overflow-x-auto space-x-1 pb-2">
-            {navItems.map((item) => {
+            {navItems
+              .filter(item => {
+                // Hide price table for operators  
+                if (item.path === '/price-table' && user.role === 'operator') {
+                  return false;
+                }
+                return true;
+              })
+              .map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               
