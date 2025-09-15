@@ -199,9 +199,13 @@ class FavrettoAPITester:
 
     def test_create_price_item_admin(self):
         """Test price table item creation as admin"""
+        # Use timestamp to ensure unique code
+        import time
+        timestamp = str(int(time.time()))[-6:]
+        
         item_data = {
-            "code": "TEST001",
-            "name": "Item de Teste",
+            "code": f"TEST{timestamp}",
+            "name": "Item de Teste Automatizado",
             "unit": "m²",
             "unit_price": 25.50,
             "category": "TESTE"
