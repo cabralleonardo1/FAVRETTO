@@ -46,6 +46,12 @@ class BudgetType(str, Enum):
     PLOTAGEM_ADESIVO = "PLOTAGEM ADESIVO"
     SIDER_UV = "SIDER E UV"
 
+class BudgetStatus(str, Enum):
+    DRAFT = "DRAFT"
+    SENT = "SENT"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
 # Models
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -72,6 +78,9 @@ class Client(BaseModel):
     phone: str
     email: Optional[EmailStr] = None
     address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
     observations: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -82,6 +91,9 @@ class ClientCreate(BaseModel):
     phone: str
     email: Optional[EmailStr] = None
     address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
     observations: Optional[str] = None
 
 class ClientUpdate(BaseModel):
@@ -90,6 +102,9 @@ class ClientUpdate(BaseModel):
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
     observations: Optional[str] = None
 
 class PriceTableItem(BaseModel):
@@ -117,6 +132,22 @@ class PriceTableItemUpdate(BaseModel):
     unit_price: Optional[float] = None
     category: Optional[str] = None
 
+class CanvasColor(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    hex_code: Optional[str] = None
+    active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CanvasColorCreate(BaseModel):
+    name: str
+    hex_code: Optional[str] = None
+
+class CanvasColorUpdate(BaseModel):
+    name: Optional[str] = None
+    hex_code: Optional[str] = None
+
 class BudgetItem(BaseModel):
     item_id: str
     item_name: str
@@ -125,6 +156,9 @@ class BudgetItem(BaseModel):
     length: Optional[float] = None
     height: Optional[float] = None
     width: Optional[float] = None
+    area_m2: Optional[float] = None
+    canvas_color: Optional[str] = None
+    print_percentage: Optional[float] = None
     subtotal: float
 
 class Budget(BaseModel):
@@ -141,7 +175,9 @@ class Budget(BaseModel):
     discount_amount: float = 0.0
     total: float
     validity_days: int = 30
-    status: str = "DRAFT"  # DRAFT, SENT, APPROVED, REJECTED
+    status: BudgetStatus = BudgetStatus.DRAFT
+    version: int = 1
+    original_budget_id: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     created_by: str
@@ -154,6 +190,24 @@ class BudgetCreate(BaseModel):
     travel_distance_km: Optional[float] = None
     observations: Optional[str] = None
     discount_percentage: float = 0.0
+
+class BudgetUpdate(BaseModel):
+    client_id: Optional[str] = None
+    budget_type: Optional[BudgetType] = None
+    items: Optional[List[BudgetItem]] = None
+    installation_location: Optional[str] = None
+    travel_distance_km: Optional[float] = None
+    observations: Optional[str] = None
+    discount_percentage: Optional[float] = None
+    status: Optional[BudgetStatus] = None
+
+class BudgetHistory(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    budget_id: str
+    changes: Dict[str, Any]
+    changed_by: str
+    change_reason: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # Helper functions
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -221,6 +275,16 @@ async def get_me(current_user: User = Depends(get_current_user)):
 # Client routes
 @api_router.post("/clients", response_model=Client)
 async def create_client(client_data: ClientCreate, current_user: User = Depends(get_current_user)):
+    # Check for duplicate by name and phone
+    existing_client = await db.clients.find_one({
+        "$or": [
+            {"name": client_data.name},
+            {"phone": client_data.phone}
+        ]
+    })
+    if existing_client:
+        raise HTTPException(status_code=400, detail="Cliente já existe com este nome ou telefone")
+    
     client_obj = Client(**client_data.dict())
     await db.clients.insert_one(client_obj.dict())
     return client_obj
@@ -242,6 +306,21 @@ async def update_client(client_id: str, client_data: ClientUpdate, current_user:
     update_data = {k: v for k, v in client_data.dict().items() if v is not None}
     update_data["updated_at"] = datetime.now(timezone.utc)
     
+    # Check for duplicates if name or phone is being updated
+    if "name" in update_data or "phone" in update_data:
+        query_conditions = []
+        if "name" in update_data:
+            query_conditions.append({"name": update_data["name"]})
+        if "phone" in update_data:
+            query_conditions.append({"phone": update_data["phone"]})
+        
+        existing_client = await db.clients.find_one({
+            "$or": query_conditions,
+            "id": {"$ne": client_id}  # Exclude current client
+        })
+        if existing_client:
+            raise HTTPException(status_code=400, detail="Cliente já existe com este nome ou telefone")
+    
     result = await db.clients.update_one({"id": client_id}, {"$set": update_data})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Client not found")
@@ -255,6 +334,84 @@ async def delete_client(client_id: str, current_user: User = Depends(get_current
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Client not found")
     return {"message": "Client deleted successfully"}
+
+# Canvas Color routes
+@api_router.post("/canvas-colors", response_model=CanvasColor)
+async def create_canvas_color(color_data: CanvasColorCreate, current_user: User = Depends(get_current_user)):
+    # Check for duplicate name
+    existing_color = await db.canvas_colors.find_one({"name": color_data.name.upper(), "active": True})
+    if existing_color:
+        raise HTTPException(status_code=400, detail="Cor já existe")
+    
+    color_dict = color_data.dict()
+    color_dict["name"] = color_dict["name"].upper()  # Store colors in uppercase
+    color_obj = CanvasColor(**color_dict)
+    await db.canvas_colors.insert_one(color_obj.dict())
+    return color_obj
+
+@api_router.get("/canvas-colors", response_model=List[CanvasColor])
+async def get_canvas_colors(current_user: User = Depends(get_current_user)):
+    colors = await db.canvas_colors.find({"active": True}).to_list(1000)
+    return [CanvasColor(**color) for color in colors]
+
+@api_router.put("/canvas-colors/{color_id}", response_model=CanvasColor)
+async def update_canvas_color(color_id: str, color_data: CanvasColorUpdate, current_user: User = Depends(get_current_user)):
+    update_data = {k: v for k, v in color_data.dict().items() if v is not None}
+    if "name" in update_data:
+        update_data["name"] = update_data["name"].upper()
+        # Check for duplicate name
+        existing_color = await db.canvas_colors.find_one({
+            "name": update_data["name"],
+            "active": True,
+            "id": {"$ne": color_id}
+        })
+        if existing_color:
+            raise HTTPException(status_code=400, detail="Cor já existe")
+    
+    update_data["updated_at"] = datetime.now(timezone.utc)
+    
+    result = await db.canvas_colors.update_one({"id": color_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Color not found")
+    
+    updated_color = await db.canvas_colors.find_one({"id": color_id})
+    return CanvasColor(**updated_color)
+
+@api_router.delete("/canvas-colors/{color_id}")
+async def delete_canvas_color(color_id: str, current_user: User = Depends(get_current_user)):
+    # Soft delete
+    result = await db.canvas_colors.update_one(
+        {"id": color_id}, 
+        {"$set": {"active": False, "updated_at": datetime.now(timezone.utc)}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Color not found")
+    return {"message": "Color deleted successfully"}
+
+# Initialize default canvas colors
+@api_router.post("/canvas-colors/initialize")
+async def initialize_default_colors(current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Only admins can initialize colors")
+    
+    default_colors = [
+        {"name": "BRANCA", "hex_code": "#FFFFFF"},
+        {"name": "PRETA", "hex_code": "#000000"},
+        {"name": "AZUL", "hex_code": "#0066CC"},
+        {"name": "VERDE", "hex_code": "#00CC00"},
+        {"name": "AMARELA", "hex_code": "#FFCC00"},
+        {"name": "VERMELHA", "hex_code": "#CC0000"}
+    ]
+    
+    created_count = 0
+    for color_data in default_colors:
+        existing = await db.canvas_colors.find_one({"name": color_data["name"], "active": True})
+        if not existing:
+            color_obj = CanvasColor(**color_data)
+            await db.canvas_colors.insert_one(color_obj.dict())
+            created_count += 1
+    
+    return {"message": f"Initialized {created_count} default colors"}
 
 # Price table routes
 @api_router.post("/price-table", response_model=PriceTableItem)
@@ -337,11 +494,44 @@ async def create_budget(budget_data: BudgetCreate, current_user: User = Depends(
     
     budget_obj = Budget(**budget_dict)
     await db.budgets.insert_one(budget_obj.dict())
+    
+    # Create history entry
+    history_entry = BudgetHistory(
+        budget_id=budget_obj.id,
+        changes={"action": "created", "budget": budget_obj.dict()},
+        changed_by=current_user.username,
+        change_reason="Budget created"
+    )
+    await db.budget_history.insert_one(history_entry.dict())
+    
     return budget_obj
 
 @api_router.get("/budgets", response_model=List[Budget])
-async def get_budgets(current_user: User = Depends(get_current_user)):
-    budgets = await db.budgets.find().sort("created_at", -1).to_list(1000)
+async def get_budgets(
+    current_user: User = Depends(get_current_user),
+    client_id: Optional[str] = None,
+    status: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+):
+    # Build query filters
+    query = {}
+    
+    if client_id:
+        query["client_id"] = client_id
+    
+    if status and status != "all":
+        query["status"] = status
+    
+    if start_date or end_date:
+        date_query = {}
+        if start_date:
+            date_query["$gte"] = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+        if end_date:
+            date_query["$lte"] = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+        query["created_at"] = date_query
+    
+    budgets = await db.budgets.find(query).sort("created_at", -1).to_list(1000)
     return [Budget(**budget) for budget in budgets]
 
 @api_router.get("/budgets/{budget_id}", response_model=Budget)
@@ -350,6 +540,91 @@ async def get_budget(budget_id: str, current_user: User = Depends(get_current_us
     if not budget:
         raise HTTPException(status_code=404, detail="Budget not found")
     return Budget(**budget)
+
+@api_router.put("/budgets/{budget_id}", response_model=Budget)
+async def update_budget(budget_id: str, budget_data: BudgetUpdate, current_user: User = Depends(get_current_user)):
+    # Get existing budget
+    existing_budget = await db.budgets.find_one({"id": budget_id})
+    if not existing_budget:
+        raise HTTPException(status_code=404, detail="Budget not found")
+    
+    update_data = {k: v for k, v in budget_data.dict().items() if v is not None}
+    
+    # If items are being updated, recalculate totals
+    if "items" in update_data:
+        subtotal = sum(item.subtotal for item in update_data["items"])
+        discount_percentage = update_data.get("discount_percentage", existing_budget.get("discount_percentage", 0))
+        discount_amount = subtotal * (discount_percentage / 100)
+        total = subtotal - discount_amount
+        
+        update_data.update({
+            "subtotal": subtotal,
+            "discount_amount": discount_amount,
+            "total": total
+        })
+    
+    # If client is being updated, get client name
+    if "client_id" in update_data:
+        client = await db.clients.find_one({"id": update_data["client_id"]})
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
+        update_data["client_name"] = client["name"]
+    
+    update_data["updated_at"] = datetime.now(timezone.utc)
+    update_data["version"] = existing_budget.get("version", 1) + 1
+    
+    result = await db.budgets.update_one({"id": budget_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Budget not found")
+    
+    # Create history entry
+    history_entry = BudgetHistory(
+        budget_id=budget_id,
+        changes={"action": "updated", "changes": update_data},
+        changed_by=current_user.username,
+        change_reason="Budget updated"
+    )
+    await db.budget_history.insert_one(history_entry.dict())
+    
+    updated_budget = await db.budgets.find_one({"id": budget_id})
+    return Budget(**updated_budget)
+
+@api_router.post("/budgets/{budget_id}/duplicate", response_model=Budget)
+async def duplicate_budget(budget_id: str, current_user: User = Depends(get_current_user)):
+    # Get original budget
+    original_budget = await db.budgets.find_one({"id": budget_id})
+    if not original_budget:
+        raise HTTPException(status_code=404, detail="Budget not found")
+    
+    # Create new budget based on original
+    new_budget_dict = original_budget.copy()
+    new_budget_dict.pop("_id", None)  # Remove MongoDB _id
+    new_budget_dict["id"] = str(uuid.uuid4())
+    new_budget_dict["status"] = BudgetStatus.DRAFT
+    new_budget_dict["version"] = 1
+    new_budget_dict["original_budget_id"] = budget_id
+    new_budget_dict["created_at"] = datetime.now(timezone.utc)
+    new_budget_dict["updated_at"] = datetime.now(timezone.utc)
+    new_budget_dict["created_by"] = current_user.username
+    
+    new_budget_obj = Budget(**new_budget_dict)
+    await db.budgets.insert_one(new_budget_obj.dict())
+    
+    # Create history entry
+    history_entry = BudgetHistory(
+        budget_id=new_budget_obj.id,
+        changes={"action": "duplicated_from", "original_budget_id": budget_id},
+        changed_by=current_user.username,
+        change_reason=f"Budget duplicated from {budget_id}"
+    )
+    await db.budget_history.insert_one(history_entry.dict())
+    
+    return new_budget_obj
+
+@api_router.get("/budgets/{budget_id}/history", response_model=List[BudgetHistory])
+async def get_budget_history(budget_id: str, current_user: User = Depends(get_current_user)):
+    history = await db.budget_history.find({"budget_id": budget_id}).sort("created_at", -1).to_list(1000)
+    return [BudgetHistory(**entry) for entry in history]
 
 @api_router.get("/budget-types")
 async def get_budget_types(current_user: User = Depends(get_current_user)):

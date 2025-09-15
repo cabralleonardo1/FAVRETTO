@@ -5,6 +5,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { 
   Calculator, 
   Plus, 
@@ -15,7 +16,11 @@ import {
   DollarSign,
   Percent,
   Save,
-  Eye
+  Eye,
+  Edit,
+  UserPlus,
+  Palette,
+  Settings
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -29,8 +34,32 @@ const BudgetCreator = ({ user }) => {
   const [clients, setClients] = useState([]);
   const [priceItems, setPriceItems] = useState([]);
   const [budgetTypes, setBudgetTypes] = useState([]);
+  const [canvasColors, setCanvasColors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  // Client dialog states
+  const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+  const [clientFormData, setClientFormData] = useState({
+    name: '',
+    contact_name: '',
+    phone: '',
+    email: '',
+    address: '',
+    city: '',
+    state: '',
+    zip_code: '',
+    observations: ''
+  });
+
+  // Color dialog states
+  const [isColorDialogOpen, setIsColorDialogOpen] = useState(false);
+  const [editingColor, setEditingColor] = useState(null);
+  const [colorFormData, setColorFormData] = useState({
+    name: '',
+    hex_code: ''
+  });
   
   const [formData, setFormData] = useState({
     client_id: '',
@@ -51,6 +80,9 @@ const BudgetCreator = ({ user }) => {
       length: 0,
       height: 0,
       width: 0,
+      area_m2: 0,
+      canvas_color: '',
+      print_percentage: 0,
       subtotal: 0
     }
   ]);
@@ -61,15 +93,17 @@ const BudgetCreator = ({ user }) => {
 
   const fetchInitialData = async () => {
     try {
-      const [clientsRes, priceItemsRes, budgetTypesRes] = await Promise.all([
+      const [clientsRes, priceItemsRes, budgetTypesRes, colorsRes] = await Promise.all([
         axios.get(`${API}/clients`),
         axios.get(`${API}/price-table`),
-        axios.get(`${API}/budget-types`)
+        axios.get(`${API}/budget-types`),
+        axios.get(`${API}/canvas-colors`)
       ]);
 
       setClients(clientsRes.data);
       setPriceItems(priceItemsRes.data);
       setBudgetTypes(budgetTypesRes.data.budget_types);
+      setCanvasColors(colorsRes.data);
     } catch (error) {
       console.error('Error fetching initial data:', error);
       toast.error('Erro ao carregar dados iniciais');
@@ -78,11 +112,183 @@ const BudgetCreator = ({ user }) => {
     }
   };
 
+  const fetchClients = async () => {
+    try {
+      const response = await axios.get(`${API}/clients`);
+      setClients(response.data);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+    }
+  };
+
+  const fetchCanvasColors = async () => {
+    try {
+      const response = await axios.get(`${API}/canvas-colors`);
+      setCanvasColors(response.data);
+    } catch (error) {
+      console.error('Error fetching canvas colors:', error);
+    }
+  };
+
+  // Client management functions
+  const handleClientSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      if (editingClient) {
+        await axios.put(`${API}/clients/${editingClient.id}`, clientFormData);
+        toast.success('Cliente atualizado com sucesso!');
+      } else {
+        const response = await axios.post(`${API}/clients`, clientFormData);
+        toast.success('Cliente criado com sucesso!');
+        setFormData(prev => ({ ...prev, client_id: response.data.id }));
+      }
+      
+      fetchClients();
+      resetClientForm();
+      setIsClientDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving client:', error);
+      const message = error.response?.data?.detail || 'Erro ao salvar cliente';
+      toast.error(message);
+    }
+  };
+
+  const handleEditClient = (client) => {
+    setEditingClient(client);
+    setClientFormData({
+      name: client.name,
+      contact_name: client.contact_name,
+      phone: client.phone,
+      email: client.email || '',
+      address: client.address || '',
+      city: client.city || '',
+      state: client.state || '',
+      zip_code: client.zip_code || '',
+      observations: client.observations || ''
+    });
+    setIsClientDialogOpen(true);
+  };
+
+  const handleDeleteClient = async (clientId) => {
+    if (!window.confirm('Tem certeza que deseja excluir este cliente?')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/clients/${clientId}`);
+      toast.success('Cliente excluído com sucesso!');
+      fetchClients();
+      if (formData.client_id === clientId) {
+        setFormData(prev => ({ ...prev, client_id: '' }));
+      }
+    } catch (error) {
+      console.error('Error deleting client:', error);
+      toast.error('Erro ao excluir cliente');
+    }
+  };
+
+  const resetClientForm = () => {
+    setClientFormData({
+      name: '',
+      contact_name: '',
+      phone: '',
+      email: '',
+      address: '',
+      city: '',
+      state: '',
+      zip_code: '',
+      observations: ''
+    });
+    setEditingClient(null);
+  };
+
+  // Color management functions
+  const handleColorSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      if (editingColor) {
+        await axios.put(`${API}/canvas-colors/${editingColor.id}`, colorFormData);
+        toast.success('Cor atualizada com sucesso!');
+      } else {
+        await axios.post(`${API}/canvas-colors`, colorFormData);
+        toast.success('Cor criada com sucesso!');
+      }
+      
+      fetchCanvasColors();
+      resetColorForm();
+      setIsColorDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving color:', error);
+      const message = error.response?.data?.detail || 'Erro ao salvar cor';
+      toast.error(message);
+    }
+  };
+
+  const handleEditColor = (color) => {
+    setEditingColor(color);
+    setColorFormData({
+      name: color.name,
+      hex_code: color.hex_code || ''
+    });
+    setIsColorDialogOpen(true);
+  };
+
+  const handleDeleteColor = async (colorId) => {
+    if (!window.confirm('Tem certeza que deseja excluir esta cor?')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/canvas-colors/${colorId}`);
+      toast.success('Cor excluída com sucesso!');
+      fetchCanvasColors();
+    } catch (error) {
+      console.error('Error deleting color:', error);
+      toast.error('Erro ao excluir cor');
+    }
+  };
+
+  const resetColorForm = () => {
+    setColorFormData({
+      name: '',
+      hex_code: ''
+    });
+    setEditingColor(null);
+  };
+
+  const initializeDefaultColors = async () => {
+    try {
+      await axios.post(`${API}/canvas-colors/initialize`);
+      toast.success('Cores padrão inicializadas!');
+      fetchCanvasColors();
+    } catch (error) {
+      console.error('Error initializing colors:', error);
+      toast.error('Erro ao inicializar cores padrão');
+    }
+  };
+
   const handleFormChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const calculateAreaM2 = (length, height, width) => {
+    if (length > 0 && height > 0) {
+      const lengthM = length / 100; // Convert cm to m
+      const heightM = height / 100; // Convert cm to m
+      
+      if (width > 0) {
+        const widthM = width / 100; // Convert cm to m
+        return lengthM * heightM * widthM; // Volume in m³
+      } else {
+        return lengthM * heightM; // Area in m²
+      }
+    }
+    return 0;
   };
 
   const handleItemChange = (index, field, value) => {
@@ -101,24 +307,29 @@ const BudgetCreator = ({ user }) => {
       }
     }
 
+    // Calculate area_m2 when dimensions change
+    if (['length', 'height', 'width'].includes(field)) {
+      const item = updatedItems[index];
+      updatedItems[index].area_m2 = calculateAreaM2(item.length, item.height, item.width);
+    }
+
     // Calculate subtotal based on item type and dimensions
     const item = updatedItems[index];
     let calculatedSubtotal = 0;
 
     if (item.unit_price > 0) {
-      // For area-based calculations (length x height)
-      if (item.length > 0 && item.height > 0) {
-        const area = (item.length / 100) * (item.height / 100); // Convert cm to m²
-        calculatedSubtotal = area * item.quantity * item.unit_price;
-      }
-      // For volume-based calculations (length x height x width)
-      else if (item.length > 0 && item.height > 0 && item.width > 0) {
-        const volume = (item.length / 100) * (item.height / 100) * (item.width / 100); // Convert cm to m³
-        calculatedSubtotal = volume * item.quantity * item.unit_price;
+      // For area/volume-based calculations
+      if (item.area_m2 > 0) {
+        calculatedSubtotal = item.area_m2 * item.quantity * item.unit_price;
       }
       // For simple quantity-based calculations
       else {
         calculatedSubtotal = item.quantity * item.unit_price;
+      }
+
+      // Apply print percentage if applicable
+      if (item.print_percentage > 0) {
+        calculatedSubtotal = calculatedSubtotal * (1 + item.print_percentage / 100);
       }
     }
 
@@ -136,6 +347,9 @@ const BudgetCreator = ({ user }) => {
       length: 0,
       height: 0,
       width: 0,
+      area_m2: 0,
+      canvas_color: '',
+      print_percentage: 0,
       subtotal: 0
     }]);
   };
@@ -182,6 +396,9 @@ const BudgetCreator = ({ user }) => {
           length: parseFloat(item.length) || null,
           height: parseFloat(item.height) || null,
           width: parseFloat(item.width) || null,
+          area_m2: parseFloat(item.area_m2) || null,
+          canvas_color: item.canvas_color || null,
+          print_percentage: parseFloat(item.print_percentage) || null,
           subtotal: item.subtotal
         }))
       };
@@ -241,18 +458,191 @@ const BudgetCreator = ({ user }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="client">Cliente *</Label>
-                <Select value={formData.client_id || ""} onValueChange={(value) => handleFormChange('client_id', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name} - {client.contact_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex space-x-2">
+                  <Select value={formData.client_id || ""} onValueChange={(value) => handleFormChange('client_id', value)}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Selecione o cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name} - {client.contact_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={resetClientForm}
+                      >
+                        <UserPlus className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingClient ? 'Editar Cliente' : 'Novo Cliente'}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {editingClient 
+                            ? 'Atualize as informações do cliente.'
+                            : 'Adicione um novo cliente ao sistema.'
+                          }
+                        </DialogDescription>
+                      </DialogHeader>
+                      
+                      <form onSubmit={handleClientSubmit} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="client_name">Nome da Empresa *</Label>
+                            <Input
+                              id="client_name"
+                              value={clientFormData.name}
+                              onChange={(e) => setClientFormData(prev => ({ ...prev, name: e.target.value }))}
+                              required
+                              placeholder="Nome da empresa"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="contact_name">Nome do Contato *</Label>
+                            <Input
+                              id="contact_name"
+                              value={clientFormData.contact_name}
+                              onChange={(e) => setClientFormData(prev => ({ ...prev, contact_name: e.target.value }))}
+                              required
+                              placeholder="Nome da pessoa de contato"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="phone">Telefone *</Label>
+                            <Input
+                              id="phone"
+                              value={clientFormData.phone}
+                              onChange={(e) => setClientFormData(prev => ({ ...prev, phone: e.target.value }))}
+                              required
+                              placeholder="(00) 00000-0000"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                              id="email"
+                              type="email"
+                              value={clientFormData.email}
+                              onChange={(e) => setClientFormData(prev => ({ ...prev, email: e.target.value }))}
+                              placeholder="cliente@exemplo.com"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="address">Endereço</Label>
+                          <Input
+                            id="address"
+                            value={clientFormData.address}
+                            onChange={(e) => setClientFormData(prev => ({ ...prev, address: e.target.value }))}
+                            placeholder="Rua, número, bairro"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="city">Cidade</Label>
+                            <Input
+                              id="city"
+                              value={clientFormData.city}
+                              onChange={(e) => setClientFormData(prev => ({ ...prev, city: e.target.value }))}
+                              placeholder="Cidade"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="state">Estado</Label>
+                            <Input
+                              id="state"
+                              value={clientFormData.state}
+                              onChange={(e) => setClientFormData(prev => ({ ...prev, state: e.target.value }))}
+                              placeholder="Estado"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="zip_code">CEP</Label>
+                            <Input
+                              id="zip_code"
+                              value={clientFormData.zip_code}
+                              onChange={(e) => setClientFormData(prev => ({ ...prev, zip_code: e.target.value }))}
+                              placeholder="00000-000"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="observations">Observações</Label>
+                          <Textarea
+                            id="observations"
+                            value={clientFormData.observations}
+                            onChange={(e) => setClientFormData(prev => ({ ...prev, observations: e.target.value }))}
+                            placeholder="Observações sobre o cliente"
+                            rows={3}
+                          />
+                        </div>
+                        
+                        <div className="flex space-x-3 pt-4">
+                          <Button type="submit" className="flex-1">
+                            {editingClient ? 'Atualizar' : 'Criar'} Cliente
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="outline"
+                            onClick={() => setIsClientDialogOpen(false)}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                {/* Selected client actions */}
+                {formData.client_id && (
+                  <div className="flex space-x-2 mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const client = clients.find(c => c.id === formData.client_id);
+                        if (client) handleEditClient(client);
+                      }}
+                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Editar
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClient(formData.client_id)}
+                      className="text-red-600 border-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Excluir
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -318,16 +708,142 @@ const BudgetCreator = ({ user }) => {
                 <Calculator className="w-5 h-5 text-green-600" />
                 <span>Itens do Orçamento</span>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addBudgetItem}
-                className="text-green-600 border-green-600 hover:bg-green-50"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Item
-              </Button>
+              <div className="flex space-x-2">
+                {/* Color Management */}
+                <Dialog open={isColorDialogOpen} onOpenChange={setIsColorDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={resetColorForm}
+                      className="text-purple-600 border-purple-600 hover:bg-purple-50"
+                    >
+                      <Palette className="w-4 h-4 mr-2" />
+                      Gerenciar Cores
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingColor ? 'Editar Cor' : 'Gerenciar Cores de Lona'}
+                      </DialogTitle>
+                      <DialogDescription>
+                        Gerencie as cores disponíveis para lonas.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4">
+                      {/* Current colors list */}
+                      <div className="space-y-2">
+                        <Label>Cores Disponíveis:</Label>
+                        <div className="max-h-40 overflow-y-auto border rounded p-2">
+                          {canvasColors.length > 0 ? (
+                            canvasColors.map((color) => (
+                              <div key={color.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                                <div className="flex items-center space-x-2">
+                                  {color.hex_code && (
+                                    <div 
+                                      className="w-4 h-4 rounded border"
+                                      style={{ backgroundColor: color.hex_code }}
+                                    ></div>
+                                  )}
+                                  <span className="font-medium">{color.name}</span>
+                                </div>
+                                <div className="flex space-x-1">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEditColor(color)}
+                                    className="text-blue-600 hover:bg-blue-50"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteColor(color.id)}
+                                    className="text-red-600 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-gray-500 text-center py-4">Nenhuma cor cadastrada</p>
+                          )}
+                        </div>
+                        
+                        {canvasColors.length === 0 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={initializeDefaultColors}
+                            className="w-full"
+                          >
+                            <Settings className="w-4 h-4 mr-2" />
+                            Inicializar Cores Padrão
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Color form */}
+                      <form onSubmit={handleColorSubmit} className="space-y-4 pt-4 border-t">
+                        <div className="space-y-2">
+                          <Label htmlFor="color_name">Nome da Cor *</Label>
+                          <Input
+                            id="color_name"
+                            value={colorFormData.name}
+                            onChange={(e) => setColorFormData(prev => ({ ...prev, name: e.target.value }))}
+                            required
+                            placeholder="Ex: AZUL CLARO"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="hex_code">Código Hex (opcional)</Label>
+                          <Input
+                            id="hex_code"
+                            value={colorFormData.hex_code}
+                            onChange={(e) => setColorFormData(prev => ({ ...prev, hex_code: e.target.value }))}
+                            placeholder="#0066CC"
+                          />
+                        </div>
+                        
+                        <div className="flex space-x-3">
+                          <Button type="submit" className="flex-1">
+                            {editingColor ? 'Atualizar' : 'Adicionar'} Cor
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="outline"
+                            onClick={() => {
+                              resetColorForm();
+                              setIsColorDialogOpen(false);
+                            }}
+                          >
+                            Fechar
+                          </Button>
+                        </div>
+                      </form>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addBudgetItem}
+                  className="text-green-600 border-green-600 hover:bg-green-50"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Item
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -413,6 +929,63 @@ const BudgetCreator = ({ user }) => {
                       min="0"
                       value={item.width}
                       onChange={(e) => handleItemChange(index, 'width', parseFloat(e.target.value) || 0)}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Área/Volume (m²/m³)</Label>
+                    <Input
+                      type="number"
+                      step="0.001"
+                      min="0"
+                      value={item.area_m2}
+                      onChange={(e) => handleItemChange(index, 'area_m2', parseFloat(e.target.value) || 0)}
+                      placeholder="Calculado automaticamente"
+                      className="bg-gray-50"
+                      readOnly
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Cor da Lona</Label>
+                    <Select 
+                      value={item.canvas_color || ""} 
+                      onValueChange={(value) => handleItemChange(index, 'canvas_color', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a cor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Sem cor específica</SelectItem>
+                        {canvasColors.map((color) => (
+                          <SelectItem key={color.id} value={color.name}>
+                            <div className="flex items-center space-x-2">
+                              {color.hex_code && (
+                                <div 
+                                  className="w-4 h-4 rounded border"
+                                  style={{ backgroundColor: color.hex_code }}
+                                ></div>
+                              )}
+                              <span>{color.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>% de Impressão</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      value={item.print_percentage}
+                      onChange={(e) => handleItemChange(index, 'print_percentage', parseFloat(e.target.value) || 0)}
                       placeholder="0"
                     />
                   </div>
