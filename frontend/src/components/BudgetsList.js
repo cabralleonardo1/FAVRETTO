@@ -181,7 +181,7 @@ const BudgetsList = () => {
               </SelectContent>
             </Select>
 
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <Select value={selectedStatus || ""} onValueChange={setSelectedStatus}>
               <SelectTrigger>
                 <div className="flex items-center space-x-2">
                   <Filter className="w-4 h-4 text-gray-400" />
