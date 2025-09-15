@@ -368,23 +368,42 @@ class FavrettoAPITester:
 
     def test_duplicate_code_validation(self):
         """Test that duplicate codes are rejected"""
-        item_data = {
-            "code": "TEST001",  # Same code as created earlier
-            "name": "Item Duplicado",
-            "unit": "m²",
-            "unit_price": 50.00,
-            "category": "TESTE"
-        }
-        
-        success, response = self.run_test(
-            "Create Duplicate Code Item (Should Fail)",
-            "POST",
-            "price-table",
-            400,
-            data=item_data,
-            token=self.admin_token
-        )
-        return success
+        # First get existing items to find a code that exists
+        try:
+            response = self.run_test(
+                "Get Existing Items for Duplicate Test",
+                "GET",
+                "price-table",
+                200,
+                token=self.admin_token
+            )
+            
+            if response[0] and response[1] and len(response[1]) > 0:
+                existing_code = response[1][0]['code']
+                
+                item_data = {
+                    "code": existing_code,  # Use existing code
+                    "name": "Item Duplicado",
+                    "unit": "m²",
+                    "unit_price": 50.00,
+                    "category": "TESTE"
+                }
+                
+                success, response = self.run_test(
+                    "Create Duplicate Code Item (Should Fail)",
+                    "POST",
+                    "price-table",
+                    400,
+                    data=item_data,
+                    token=self.admin_token
+                )
+                return success
+            else:
+                print("❌ No existing items found for duplicate test")
+                return False
+        except Exception as e:
+            print(f"❌ Error in duplicate test: {e}")
+            return False
 
     def test_get_budget_types(self):
         """Test getting budget types"""
