@@ -164,7 +164,7 @@ const BudgetsList = () => {
               />
             </div>
             
-            <Select value={selectedType} onValueChange={setSelectedType}>
+            <Select value={selectedType || ""} onValueChange={setSelectedType}>
               <SelectTrigger>
                 <div className="flex items-center space-x-2">
                   <Filter className="w-4 h-4 text-gray-400" />
