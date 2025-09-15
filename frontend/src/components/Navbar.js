@@ -6,7 +6,7 @@ import {
   Users, 
   Calculator, 
   FileText, 
-  PriceTag,
+  Tag,
   LogOut,
   User
 } from 'lucide-react';
