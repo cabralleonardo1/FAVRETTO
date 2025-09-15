@@ -27,6 +27,46 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const PriceTableManager = ({ user }) => {
+  // Check if user has access to price table
+  if (user?.role !== 'admin') {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Acesso Negado</h1>
+            <p className="text-gray-600 mt-1">Você não tem permissão para acessar esta página</p>
+          </div>
+        </div>
+        
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-8 text-center">
+            <Package className="w-16 h-16 mx-auto text-red-300 mb-4" />
+            <h3 className="text-lg font-medium text-red-900 mb-2">
+              Acesso Restrito
+            </h3>
+            <p className="text-red-700 mb-6">
+              A tabela de preços é acessível apenas para administradores. 
+              Entre em contato com um administrador se precisar acessar esta funcionalidade.
+            </p>
+            <div className="flex items-center justify-center space-x-4">
+              <Button
+                onClick={() => window.history.back()}
+                variant="outline"
+                className="border-red-600 text-red-600 hover:bg-red-50"
+              >
+                Voltar
+              </Button>
+              <a href="/dashboard">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  Ir para Dashboard
+                </Button>
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
