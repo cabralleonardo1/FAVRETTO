@@ -241,7 +241,7 @@ const BudgetCreator = ({ user }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="client">Cliente *</Label>
-                <Select value={formData.client_id} onValueChange={(value) => handleFormChange('client_id', value)}>
+                <Select value={formData.client_id || ""} onValueChange={(value) => handleFormChange('client_id', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o cliente" />
                   </SelectTrigger>
