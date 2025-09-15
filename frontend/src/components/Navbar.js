@@ -17,7 +17,7 @@ const Navbar = ({ user, onLogout }) => {
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Building2 },
     { path: '/clients', label: 'Clientes', icon: Users },
-    { path: '/price-table', label: 'Tabela de Preços', icon: PriceTag },
+    { path: '/price-table', label: 'Tabela de Preços', icon: Tag },
     { path: '/budgets/new', label: 'Novo Orçamento', icon: Calculator },
     { path: '/budgets', label: 'Orçamentos', icon: FileText },
   ];
