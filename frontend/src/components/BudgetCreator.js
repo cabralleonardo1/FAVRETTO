@@ -257,7 +257,7 @@ const BudgetCreator = ({ user }) => {
 
               <div className="space-y-2">
                 <Label htmlFor="budget_type">Tipo de Orçamento *</Label>
-                <Select value={formData.budget_type} onValueChange={(value) => handleFormChange('budget_type', value)}>
+                <Select value={formData.budget_type || ""} onValueChange={(value) => handleFormChange('budget_type', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
