@@ -81,7 +81,7 @@ const BudgetCreator = ({ user }) => {
       height: 0,
       width: 0,
       area_m2: 0,
-      canvas_color: '',
+      canvas_color: 'none',
       print_percentage: 0,
       subtotal: 0
     }
