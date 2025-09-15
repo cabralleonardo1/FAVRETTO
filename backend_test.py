@@ -817,8 +817,8 @@ class FavrettoAPITester:
         return success
 
 def main():
-    print("🚀 Starting Favretto API Tests")
-    print("=" * 50)
+    print("🚀 Starting Favretto API Tests - COMPREHENSIVE TESTING")
+    print("=" * 60)
     
     tester = FavrettoAPITester()
     
@@ -838,14 +838,27 @@ def main():
     tester.test_auth_me_admin()
     tester.test_auth_me_operator()
     
-    # Client management tests
-    print("\n📋 CLIENT MANAGEMENT TESTS")
-    print("-" * 30)
+    # Canvas Colors tests (NEW FEATURE)
+    print("\n📋 CANVAS COLORS TESTS (NEW FEATURE)")
+    print("-" * 40)
+    
+    tester.test_canvas_colors_initialize()
+    tester.test_get_canvas_colors()
+    tester.test_create_canvas_color()
+    tester.test_update_canvas_color()
+    tester.test_duplicate_canvas_color()  # Should fail
+    tester.test_delete_canvas_color()
+    
+    # Client management tests (ENHANCED)
+    print("\n📋 CLIENT MANAGEMENT TESTS (ENHANCED)")
+    print("-" * 40)
     
     tester.test_create_client()
+    tester.test_client_with_new_fields()  # NEW: city, state, zip_code
     tester.test_get_clients()
     tester.test_get_client_by_id()
     tester.test_update_client()
+    tester.test_client_duplicate_validation()  # NEW: name/phone validation
     
     # Price table tests
     print("\n📋 PRICE TABLE TESTS")
@@ -861,23 +874,28 @@ def main():
     tester.test_delete_price_item_operator()  # Should fail
     tester.test_delete_price_item_admin()  # Should succeed
     
-    # Budget tests
-    print("\n📋 BUDGET TESTS")
+    # Budget tests (ENHANCED)
+    print("\n📋 BUDGET TESTS (ENHANCED)")
     print("-" * 30)
     
     tester.test_get_budget_types()
     tester.test_create_budget()
+    tester.test_create_budget_with_new_fields()  # NEW: area_m2, canvas_color, print_percentage
     tester.test_get_budgets()
     tester.test_get_budget_by_id()
+    tester.test_budget_filters()  # NEW: client_id, status filters
+    tester.test_duplicate_budget()  # NEW: duplication feature
+    tester.test_budget_history()  # NEW: history tracking
     
     # Cleanup
     print("\n📋 CLEANUP TESTS")
     print("-" * 30)
     
     tester.test_delete_client()
+    tester.test_delete_complete_client()
     
     # Print final results
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     print(f"📊 FINAL RESULTS: {tester.tests_passed}/{tester.tests_run} tests passed")
     
     if tester.tests_passed == tester.tests_run:
