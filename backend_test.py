@@ -267,6 +267,118 @@ class FavrettoAPITester:
         )
         return success
 
+    def test_update_price_item_admin(self):
+        """Test price table item update as admin"""
+        if not self.created_price_item_id:
+            print("❌ No price item ID available for testing")
+            return False
+            
+        update_data = {
+            "name": "Item de Teste Atualizado",
+            "unit_price": 35.75
+        }
+        
+        success, response = self.run_test(
+            "Update Price Item (Admin)",
+            "PUT",
+            f"price-table/{self.created_price_item_id}",
+            200,
+            data=update_data,
+            token=self.admin_token
+        )
+        return success
+
+    def test_update_price_item_operator(self):
+        """Test price table item update as operator (should fail)"""
+        if not self.created_price_item_id:
+            print("❌ No price item ID available for testing")
+            return False
+            
+        update_data = {
+            "name": "Tentativa de Atualização Operador",
+            "unit_price": 40.00
+        }
+        
+        success, response = self.run_test(
+            "Update Price Item (Operator - Should Fail)",
+            "PUT",
+            f"price-table/{self.created_price_item_id}",
+            403,
+            data=update_data,
+            token=self.operator_token
+        )
+        return success
+
+    def test_delete_price_item_admin(self):
+        """Test price table item deletion as admin (soft delete)"""
+        if not self.created_price_item_id:
+            print("❌ No price item ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Delete Price Item (Admin)",
+            "DELETE",
+            f"price-table/{self.created_price_item_id}",
+            200,
+            token=self.admin_token
+        )
+        return success
+
+    def test_delete_price_item_operator(self):
+        """Test price table item deletion as operator (should fail)"""
+        # Create another item first for operator delete test
+        item_data = {
+            "code": "TEST_DEL",
+            "name": "Item para Teste de Deleção",
+            "unit": "un",
+            "unit_price": 15.00,
+            "category": "TESTE"
+        }
+        
+        success, response = self.run_test(
+            "Create Item for Delete Test",
+            "POST",
+            "price-table",
+            200,
+            data=item_data,
+            token=self.admin_token
+        )
+        
+        if not success or 'id' not in response:
+            print("❌ Failed to create item for delete test")
+            return False
+            
+        item_id = response['id']
+        
+        success, response = self.run_test(
+            "Delete Price Item (Operator - Should Fail)",
+            "DELETE",
+            f"price-table/{item_id}",
+            403,
+            token=self.operator_token
+        )
+        return success
+
+    def test_duplicate_code_validation(self):
+        """Test that duplicate codes are rejected"""
+        item_data = {
+            "code": "TEST001",  # Same code as created earlier
+            "name": "Item Duplicado",
+            "unit": "m²",
+            "unit_price": 50.00,
+            "category": "TESTE"
+        }
+        
+        success, response = self.run_test(
+            "Create Duplicate Code Item (Should Fail)",
+            "POST",
+            "price-table",
+            400,
+            data=item_data,
+            token=self.admin_token
+        )
+        return success
+
     def test_get_budget_types(self):
         """Test getting budget types"""
         success, response = self.run_test(
