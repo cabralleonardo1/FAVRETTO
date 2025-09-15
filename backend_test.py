@@ -331,8 +331,11 @@ class FavrettoAPITester:
     def test_delete_price_item_operator(self):
         """Test price table item deletion as operator (should fail)"""
         # Create another item first for operator delete test
+        import time
+        timestamp = str(int(time.time()))[-6:]
+        
         item_data = {
-            "code": "TEST_DEL",
+            "code": f"DEL{timestamp}",
             "name": "Item para Teste de Deleção",
             "unit": "un",
             "unit_price": 15.00,
