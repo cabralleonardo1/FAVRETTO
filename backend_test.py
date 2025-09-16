@@ -817,6 +817,237 @@ class FavrettoAPITester:
         )
         return success
 
+    # SELLER TESTS - NEW FEATURE
+    def test_create_seller(self):
+        """Test seller creation"""
+        seller_data = {
+            "name": "João da Silva",
+            "email": "joao@teste.com",
+            "phone": "(11) 99999-9999",
+            "commission_percentage": 10.0,
+            "registration_number": "REG001",
+            "observations": "Vendedor de teste criado automaticamente"
+        }
+        
+        success, response = self.run_test(
+            "Create Seller",
+            "POST",
+            "sellers",
+            200,
+            data=seller_data,
+            token=self.admin_token
+        )
+        
+        if success and 'id' in response:
+            self.created_seller_id = response['id']
+            print(f"   Seller commission: {response.get('commission_percentage')}%")
+            print(f"   Seller registration: {response.get('registration_number')}")
+            return True
+        return False
+
+    def test_get_sellers(self):
+        """Test getting all sellers"""
+        success, response = self.run_test(
+            "Get All Sellers",
+            "GET",
+            "sellers",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} active sellers")
+            return True
+        return False
+
+    def test_get_seller_by_id(self):
+        """Test getting specific seller"""
+        if not self.created_seller_id:
+            print("❌ No seller ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Get Seller by ID",
+            "GET",
+            f"sellers/{self.created_seller_id}",
+            200,
+            token=self.admin_token
+        )
+        return success
+
+    def test_update_seller(self):
+        """Test updating seller"""
+        if not self.created_seller_id:
+            print("❌ No seller ID available for testing")
+            return False
+            
+        update_data = {
+            "commission_percentage": 12.5,
+            "observations": "Vendedor atualizado via teste automatizado"
+        }
+        
+        success, response = self.run_test(
+            "Update Seller",
+            "PUT",
+            f"sellers/{self.created_seller_id}",
+            200,
+            data=update_data,
+            token=self.admin_token
+        )
+        
+        if success and response.get('commission_percentage') == 12.5:
+            print(f"   Updated commission: {response.get('commission_percentage')}%")
+            return True
+        return False
+
+    def test_delete_seller(self):
+        """Test seller deletion (soft delete)"""
+        if not self.created_seller_id:
+            print("❌ No seller ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Delete Seller (Soft Delete)",
+            "DELETE",
+            f"sellers/{self.created_seller_id}",
+            200,
+            token=self.admin_token
+        )
+        return success
+
+    def test_seller_duplicate_validation(self):
+        """Test seller duplicate validation (name and registration number)"""
+        # Create a seller first
+        seller_data = {
+            "name": "Maria Santos",
+            "email": "maria@teste.com",
+            "phone": "(11) 88888-8888",
+            "commission_percentage": 8.0,
+            "registration_number": "REG002"
+        }
+        
+        success, response = self.run_test(
+            "Create Seller for Duplicate Test",
+            "POST",
+            "sellers",
+            200,
+            data=seller_data,
+            token=self.admin_token
+        )
+        
+        if not success:
+            return False
+            
+        # Try to create seller with same name
+        duplicate_name_data = {
+            "name": "Maria Santos",  # Same name
+            "email": "maria2@teste.com",
+            "phone": "(11) 77777-7777",
+            "commission_percentage": 9.0,
+            "registration_number": "REG003"
+        }
+        
+        success1, response1 = self.run_test(
+            "Create Seller with Duplicate Name (Should Fail)",
+            "POST",
+            "sellers",
+            400,
+            data=duplicate_name_data,
+            token=self.admin_token
+        )
+        
+        # Try to create seller with same registration number
+        duplicate_reg_data = {
+            "name": "Pedro Costa",
+            "email": "pedro@teste.com",
+            "phone": "(11) 66666-6666",
+            "commission_percentage": 7.0,
+            "registration_number": "REG002"  # Same registration
+        }
+        
+        success2, response2 = self.run_test(
+            "Create Seller with Duplicate Registration (Should Fail)",
+            "POST",
+            "sellers",
+            400,
+            data=duplicate_reg_data,
+            token=self.admin_token
+        )
+        
+        return success1 and success2
+
+    def test_create_budget_with_seller(self):
+        """Test budget creation with seller assignment"""
+        if not self.created_client_id or not self.created_price_item_id:
+            print("❌ Missing client or price item for budget creation")
+            return False
+            
+        # First create a new seller for this test
+        seller_data = {
+            "name": "Carlos Vendedor",
+            "email": "carlos@vendedor.com",
+            "phone": "(11) 55555-5555",
+            "commission_percentage": 15.0,
+            "registration_number": "REG004"
+        }
+        
+        success, seller_response = self.run_test(
+            "Create Seller for Budget Test",
+            "POST",
+            "sellers",
+            200,
+            data=seller_data,
+            token=self.admin_token
+        )
+        
+        if not success or 'id' not in seller_response:
+            print("❌ Failed to create seller for budget test")
+            return False
+            
+        seller_id = seller_response['id']
+        
+        budget_data = {
+            "client_id": self.created_client_id,
+            "seller_id": seller_id,  # Assign seller
+            "budget_type": "IMPLANTAÇÃO AUTOMIDIA",
+            "items": [
+                {
+                    "item_id": self.created_price_item_id,
+                    "item_name": "Item com Vendedor",
+                    "quantity": 8.0,
+                    "unit_price": 45.00,
+                    "item_discount_percentage": 5.0,  # Test item discount
+                    "subtotal": 360.00,
+                    "final_price": 342.00  # After 5% discount
+                }
+            ],
+            "installation_location": "Belo Horizonte, MG",
+            "travel_distance_km": 30.0,
+            "observations": "Orçamento com vendedor e desconto por item",
+            "discount_percentage": 8.0
+        }
+        
+        success, response = self.run_test(
+            "Create Budget with Seller",
+            "POST",
+            "budgets",
+            200,
+            data=budget_data,
+            token=self.admin_token
+        )
+        
+        if success and 'id' in response:
+            self.created_budget_with_seller_id = response['id']
+            print(f"   Budget seller: {response.get('seller_name')}")
+            print(f"   Budget total: R$ {response.get('total', 0):.2f}")
+            # Check if item discount was applied
+            if response.get('items') and len(response['items']) > 0:
+                item = response['items'][0]
+                print(f"   Item discount: {item.get('item_discount_percentage', 0)}%")
+                print(f"   Item final price: R$ {item.get('final_price', 0):.2f}")
+            return True
+        return False
+
 def main():
     print("🚀 Starting Favretto API Tests - COMPREHENSIVE TESTING")
     print("=" * 60)
