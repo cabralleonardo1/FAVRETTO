@@ -134,6 +134,31 @@ const BudgetsList = ({ onAuthError }) => {
     setIsHistoryDialogOpen(true);
   };
 
+  const handleEditBudget = (budget) => {
+    // Navegar para a página de edição de orçamento
+    window.location.href = `/budgets/edit/${budget.id}`;
+  };
+
+  const handleDeleteBudget = async (budgetId, budgetClientName) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o orçamento de "${budgetClientName}"?`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/budgets/${budgetId}`);
+      toast.success('Orçamento excluído com sucesso!');
+      fetchBudgets(); // Recarregar a lista
+    } catch (error) {
+      console.error('Error deleting budget:', error);
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        const message = error.response?.data?.detail || 'Erro ao excluir orçamento';
+        toast.error(message);
+      }
+    }
+  };
+
   const exportBudgetToPDF = (budget) => {
     const printWindow = window.open('', '_blank');
     const printContent = `
