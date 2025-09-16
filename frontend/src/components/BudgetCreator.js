@@ -95,7 +95,55 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
 
   useEffect(() => {
     fetchInitialData();
-  }, []);
+    if (isEditMode) {
+      fetchBudgetData();
+    }
+  }, [isEditMode]);
+
+  const fetchBudgetData = async () => {
+    try {
+      const response = await axios.get(`${API}/budgets/${budgetId}`);
+      const budget = response.data;
+      
+      // Carregar dados do orçamento nos formulários
+      setFormData({
+        client_id: budget.client_id,
+        seller_id: budget.seller_id || "",
+        budget_type: budget.budget_type,
+        installation_location: budget.installation_location || "",
+        travel_distance_km: budget.travel_distance_km || "",
+        observations: budget.observations || "",
+        discount_percentage: budget.discount_percentage || 0
+      });
+
+      // Carregar itens do orçamento
+      setBudgetItems(budget.items.map(item => ({
+        id: Date.now() + Math.random(),
+        item_id: item.item_id,
+        item_name: item.item_name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        length: item.length || 0,
+        height: item.height || 0,
+        width: item.width || 0,
+        area_m2: item.area_m2 || 0,
+        canvas_color: item.canvas_color || "",
+        print_percentage: item.print_percentage || 0,
+        item_discount_percentage: item.item_discount_percentage || 0,
+        subtotal: item.subtotal,
+        final_price: item.final_price || item.subtotal
+      })));
+
+    } catch (error) {
+      console.error('Error fetching budget data:', error);
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao carregar dados do orçamento');
+        navigate('/budgets');
+      }
+    }
+  };
 
   const fetchInitialData = async () => {
     try {
