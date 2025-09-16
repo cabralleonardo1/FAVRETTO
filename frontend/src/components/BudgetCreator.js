@@ -140,6 +140,9 @@ const BudgetCreator = ({ user, onAuthError }) => {
       setCanvasColors(response.data);
     } catch (error) {
       console.error('Error fetching canvas colors:', error);
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      }
     }
   };
 
