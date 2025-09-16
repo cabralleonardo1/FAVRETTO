@@ -310,6 +310,30 @@ backend:
           agent: "testing"
           comment: "✅ Comprehensive error handling tested. 404 errors for non-existent sellers/budgets. 422 errors for validation failures. 403 errors for authentication issues. 400 errors for business logic violations (duplicates). All error responses include proper detail messages."
 
+  - task: "Budget Edit Error Fix"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL BUG FIX VERIFIED: The reported budget edit error 'dict' object has no attribute 'final_price' has been successfully fixed. PUT /api/budgets/{id} now works correctly. Tested multiple scenarios: items with/without final_price field, mixed item configurations, consecutive edits, and edge cases. All calculations for fixed discounts (R$ 100,00), percentage discounts (10%), and item discounts (15%) are working perfectly. Formula verified: subtotal * (1 - discount/100) = final_price. Backend handles missing fields gracefully using item.get('final_price') or item.get('subtotal', 0) pattern."
+
+  - task: "New Discount Functionality"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ NEW DISCOUNT FEATURES WORKING PERFECTLY: Both discount_type 'fixed' and 'percentage' implemented and tested. Fixed discount: discount_amount = discount_percentage (when type is 'fixed'). Percentage discount: discount_amount = subtotal * (discount_percentage / 100). Item-level discounts also working: final_price = subtotal * (1 - item_discount_percentage/100). All calculations verified with real test data. Budget creation and editing with both discount types working flawlessly."
+
 frontend:
   - task: "Frontend Testing"
     implemented: false
