@@ -820,12 +820,15 @@ class FavrettoAPITester:
     # SELLER TESTS - NEW FEATURE
     def test_create_seller(self):
         """Test seller creation"""
+        import time
+        timestamp = str(int(time.time()))[-6:]
+        
         seller_data = {
-            "name": "João da Silva",
-            "email": "joao@teste.com",
-            "phone": "(11) 99999-9999",
+            "name": f"Vendedor Teste {timestamp}",
+            "email": f"vendedor{timestamp}@teste.com",
+            "phone": f"(11) 9999{timestamp[-4:]}",
             "commission_percentage": 10.0,
-            "registration_number": "REG001",
+            "registration_number": f"REG{timestamp}",
             "observations": "Vendedor de teste criado automaticamente"
         }
         
