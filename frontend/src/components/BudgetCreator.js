@@ -128,6 +128,9 @@ const BudgetCreator = ({ user, onAuthError }) => {
       setClients(response.data);
     } catch (error) {
       console.error('Error fetching clients:', error);
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      }
     }
   };
 
