@@ -112,7 +112,11 @@ const BudgetCreator = ({ user, onAuthError }) => {
       setCanvasColors(colorsRes.data);
     } catch (error) {
       console.error('Error fetching initial data:', error);
-      toast.error('Erro ao carregar dados iniciais');
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao carregar dados iniciais');
+      }
     } finally {
       setLoading(false);
     }
