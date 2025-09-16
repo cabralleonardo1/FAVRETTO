@@ -210,6 +210,7 @@ class Budget(BaseModel):
     subtotal: float
     discount_percentage: float = 0.0
     discount_amount: float = 0.0
+    discount_type: str = "percentage"  # "percentage" or "fixed"
     total: float
     validity_days: int = 30
     status: BudgetStatus = BudgetStatus.DRAFT
