@@ -907,7 +907,7 @@ async def get_budget_statistics(current_user: User = Depends(get_current_user)):
             if isinstance(budget_date, str):
                 try:
                     budget_date = datetime.fromisoformat(budget_date.replace('Z', '+00:00'))
-                except:
+                except (ValueError, TypeError):
                     continue
             elif not isinstance(budget_date, datetime):
                 continue
