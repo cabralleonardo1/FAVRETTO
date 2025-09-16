@@ -198,7 +198,11 @@ const BudgetCreator = ({ user, onAuthError }) => {
       }
     } catch (error) {
       console.error('Error deleting client:', error);
-      toast.error('Erro ao excluir cliente');
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao excluir cliente');
+      }
     }
   };
 
