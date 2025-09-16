@@ -825,6 +825,16 @@ const BudgetsList = ({ onAuthError }) => {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => handleChangeStatus(budget)}
+                        className="text-purple-600 border-purple-600 hover:bg-purple-50"
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Status
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleDeleteBudget(budget.id, budget.client_name)}
                         className="text-red-600 border-red-600 hover:bg-red-50"
                       >
