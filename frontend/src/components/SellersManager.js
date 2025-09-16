@@ -109,7 +109,11 @@ const SellersManager = ({ onAuthError }) => {
       fetchSellers();
     } catch (error) {
       console.error('Error deleting seller:', error);
-      toast.error('Erro ao excluir vendedor');
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao excluir vendedor');
+      }
     }
   };
 
