@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class FavrettoAPITester:
-    def __init__(self, base_url="https://orcasys-favretto.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://budget-system-1.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.admin_token = None
         self.operator_token = None
