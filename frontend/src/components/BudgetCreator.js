@@ -361,7 +361,7 @@ const BudgetCreator = ({ user }) => {
   };
 
   const calculateTotals = () => {
-    const subtotal = budgetItems.reduce((sum, item) => sum + item.subtotal, 0);
+    const subtotal = budgetItems.reduce((sum, item) => sum + (item.final_price || item.subtotal), 0);
     const discountAmount = subtotal * (formData.discount_percentage / 100);
     const total = subtotal - discountAmount;
 
