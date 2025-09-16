@@ -9,9 +9,11 @@ import { toast } from 'sonner';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import ClientsManager from './components/ClientsManager';
+import SellersManager from './components/SellersManager';
 import PriceTableManager from './components/PriceTableManager';
 import BudgetCreator from './components/BudgetCreator';
 import BudgetsList from './components/BudgetsList';
+import CommissionsManager from './components/CommissionsManager';
 import Navbar from './components/Navbar';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
