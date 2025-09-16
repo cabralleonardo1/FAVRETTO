@@ -490,7 +490,10 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
         ...formData,
         seller_id: formData.seller_id === "none" ? "" : formData.seller_id,
         travel_distance_km: parseFloat(formData.travel_distance_km) || 0,
-        discount_percentage: parseFloat(formData.discount_percentage) || 0,
+        discount_percentage: formData.discount_type === 'percentage' 
+          ? parseFloat(formData.discount_percentage) || 0 
+          : parseFloat(formData.discount_amount) || 0,  // When fixed, send amount in percentage field
+        discount_type: formData.discount_type,
         items: budgetItems.map(item => ({
           item_id: item.item_id,
           item_name: item.item_name,
