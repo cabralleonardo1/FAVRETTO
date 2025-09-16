@@ -496,15 +496,20 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
         }))
       };
 
-      const response = await axios.post(`${API}/budgets`, budgetData);
-      toast.success('Orçamento criado com sucesso!');
+      if (isEditMode) {
+        const response = await axios.put(`${API}/budgets/${budgetId}`, budgetData);
+        toast.success('Orçamento atualizado com sucesso!');
+      } else {
+        const response = await axios.post(`${API}/budgets`, budgetData);
+        toast.success('Orçamento criado com sucesso!');
+      }
       navigate('/budgets');
     } catch (error) {
-      console.error('Error creating budget:', error);
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} budget:`, error);
       if (error.response?.status === 401 && onAuthError) {
         onAuthError();
       } else {
-        toast.error('Erro ao criar orçamento');
+        toast.error(`Erro ao ${isEditMode ? 'atualizar' : 'criar'} orçamento`);
       }
     } finally {
       setSaving(false);
