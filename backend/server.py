@@ -240,6 +240,7 @@ class BudgetUpdate(BaseModel):
     travel_distance_km: Optional[float] = None
     observations: Optional[str] = None
     discount_percentage: Optional[float] = None
+    discount_type: Optional[str] = None  # "percentage" or "fixed"
     status: Optional[BudgetStatus] = None
 
 class Commission(BaseModel):
