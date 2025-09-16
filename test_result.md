@@ -185,6 +185,18 @@
   test_all: false
   test_priority: "high_first"
 
+  - task: "Budget Edit and Delete Functionality"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/BudgetsList.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "SUCCESSFULLY IMPLEMENTED: Added Edit and Delete buttons to budget list page. Edit opens budget in edit mode (/budgets/edit/:id) using BudgetCreator component with pre-filled data. Delete shows confirmation dialog and removes budget. Both functions include proper 401 error handling. Backend endpoints already existed - PUT /budgets/{id} and DELETE /budgets/{id}. Modified BudgetCreator to support edit mode with dynamic titles and form submission. Added 14 Edit and 14 Delete buttons confirmed via testing."
+
 ## agent_communication:
     - agent: "main"
       message: "Backend testing complete - all functionality working. Issue identified: Frontend authentication session is not persisting during navigation. User gets redirected to login screen when trying to access Vendedores or create budgets."
@@ -196,6 +208,8 @@
       message: "SELLERS FIXED: Removed axios response interceptor and implemented proper 401 handling via onAuthError callbacks. SellersManager now works reliably - can navigate, create, edit, and delete sellers. BUDGET CREATOR PARTIALLY FIXED: Navigation works but has React Select component error preventing full render. Fixed some Select value issues but one component still problematic."
     - agent: "main"
       message: "BUDGET CREATOR NOW FULLY FIXED: Solved React Select error by changing empty string values to 'none' in SelectItem components and adding conversion logic in form submission. Changed: SelectItem value='' to value='none' for 'Nenhum vendedor' and 'Sem cor específica'. Added logic to convert 'none' back to empty string for backend API. Page now renders completely without React errors."
+    - agent: "main"
+      message: "BUDGET EDIT/DELETE FUNCTIONALITY IMPLEMENTED: Successfully added Edit and Delete buttons to all budgets in the list page (14 buttons each confirmed). Edit button opens budget in new tab using /budgets/edit/:id route with BudgetCreator in edit mode. Delete button shows confirmation dialog and removes budget with proper error handling. Modified BudgetCreator to support both create and edit modes with dynamic titles, pre-filled data loading, and appropriate API calls (POST for create, PUT for edit)."
 
 user_problem_statement: "Testar a funcionalidade de vendedores (sellers) e orçamentos (budgets) do sistema. Usar a URL do backend REACT_APP_BACKEND_URL=https://budget-system-1.preview.emergentagent.com/api"
 
