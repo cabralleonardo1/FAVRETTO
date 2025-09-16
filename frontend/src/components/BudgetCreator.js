@@ -1021,7 +1021,7 @@ const BudgetCreator = ({ user, onAuthError }) => {
                         <SelectValue placeholder="Selecione a cor" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Sem cor específica</SelectItem>
+                        <SelectItem value="">Sem cor específica</SelectItem>
                         {canvasColors.map((color) => (
                           <SelectItem key={color.id} value={color.name}>
                             <div className="flex items-center space-x-2">
