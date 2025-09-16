@@ -428,7 +428,11 @@ const BudgetCreator = ({ user, onAuthError }) => {
       navigate('/budgets');
     } catch (error) {
       console.error('Error creating budget:', error);
-      toast.error('Erro ao criar orçamento');
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao criar orçamento');
+      }
     } finally {
       setSaving(false);
     }
