@@ -839,6 +839,105 @@ async def get_budget_history(budget_id: str, current_user: User = Depends(get_cu
     history = await db.budget_history.find({"budget_id": budget_id}).sort("created_at", -1).to_list(1000)
     return [BudgetHistory(**entry) for entry in history]
 
+# Endpoint to update budget status
+@api_router.patch("/budgets/{budget_id}/status")
+async def update_budget_status(
+    budget_id: str, 
+    status_data: dict, 
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        new_status = status_data.get("status")
+        if new_status not in ["DRAFT", "SENT", "APPROVED", "REJECTED"]:
+            raise HTTPException(status_code=400, detail="Invalid status")
+        
+        # Update budget status
+        result = await db.budgets.update_one(
+            {"id": budget_id}, 
+            {
+                "$set": {
+                    "status": new_status,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Budget not found")
+        
+        # Get updated budget
+        updated_budget = await db.budgets.find_one({"id": budget_id})
+        if not updated_budget:
+            raise HTTPException(status_code=404, detail="Budget not found")
+        
+        return {"message": "Status updated successfully", "budget": Budget(**updated_budget)}
+    
+    except Exception as e:
+        print(f"Error updating budget status: {e}")
+        raise HTTPException(status_code=500, detail="Error updating budget status")
+
+# Endpoint for budget statistics
+@api_router.get("/statistics/budgets")
+async def get_budget_statistics(current_user: User = Depends(get_current_user)):
+    try:
+        from datetime import datetime, timezone
+        import calendar
+        
+        # Get current month start and end
+        now = datetime.now(timezone.utc)
+        month_start = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+        next_month = month_start.replace(day=28) + timedelta(days=4)
+        month_end = next_month.replace(day=1) - timedelta(seconds=1)
+        
+        # Get all budgets
+        all_budgets = await db.budgets.find().to_list(length=None)
+        
+        # Calculate overall approval rate
+        total_sent = len([b for b in all_budgets if b.get("status") in ["SENT", "APPROVED", "REJECTED"]])
+        total_approved = len([b for b in all_budgets if b.get("status") == "APPROVED"])
+        
+        approval_rate = (total_approved / total_sent * 100) if total_sent > 0 else 0
+        
+        # Calculate monthly revenue (only approved budgets in current month)
+        monthly_revenue = 0.0
+        approved_this_month = 0
+        
+        for budget in all_budgets:
+            budget_date = budget.get("created_at")
+            if isinstance(budget_date, str):
+                try:
+                    budget_date = datetime.fromisoformat(budget_date.replace('Z', '+00:00'))
+                except:
+                    continue
+            elif not isinstance(budget_date, datetime):
+                continue
+                
+            # Check if budget is approved and within current month
+            if (budget.get("status") == "APPROVED" and 
+                month_start <= budget_date <= month_end):
+                monthly_revenue += budget.get("total", 0)
+                approved_this_month += 1
+        
+        # Additional statistics
+        stats = {
+            "total_budgets": len(all_budgets),
+            "draft_budgets": len([b for b in all_budgets if b.get("status") == "DRAFT"]),
+            "sent_budgets": len([b for b in all_budgets if b.get("status") == "SENT"]),
+            "approved_budgets": total_approved,
+            "rejected_budgets": len([b for b in all_budgets if b.get("status") == "REJECTED"]),
+            "approval_rate": round(approval_rate, 2),
+            "monthly_revenue": round(monthly_revenue, 2),
+            "approved_this_month": approved_this_month,
+            "current_month": now.strftime("%B %Y"),
+            "last_updated": now.isoformat()
+        }
+        
+        return stats
+        
+    except Exception as e:
+        print(f"Error calculating statistics: {e}")
+        raise HTTPException(status_code=500, detail="Error calculating budget statistics")
+
 # Commission routes
 async def create_commission_for_budget(budget: Budget, created_by: str):
     """Helper function to create commission when budget is approved"""
