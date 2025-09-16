@@ -67,7 +67,11 @@ const BudgetsList = ({ onAuthError }) => {
       setBudgetTypes(budgetTypesRes.data.budget_types);
     } catch (error) {
       console.error('Error fetching initial data:', error);
-      toast.error('Erro ao carregar dados');
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao carregar dados');
+      }
     } finally {
       setLoading(false);
     }
