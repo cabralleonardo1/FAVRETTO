@@ -624,7 +624,13 @@ async def create_budget(budget_data: BudgetCreate, current_user: User = Depends(
     
     # Calculate totals
     subtotal = sum(item.final_price or item.subtotal for item in budget_data.items)
-    discount_amount = subtotal * (budget_data.discount_percentage / 100)
+    
+    # Calculate discount based on type
+    if budget_data.discount_type == "fixed":
+        discount_amount = budget_data.discount_percentage  # When type is "fixed", discount_percentage contains the fixed amount
+    else:  # percentage
+        discount_amount = subtotal * (budget_data.discount_percentage / 100)
+    
     total = subtotal - discount_amount
     
     budget_dict = budget_data.dict()
