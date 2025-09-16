@@ -189,6 +189,8 @@
       message: "All backend seller and budget endpoints tested successfully. Authentication with admin/admin123 working. Problem is frontend-only - session management issue."
     - agent: "testing"
       message: "COMPREHENSIVE FRONTEND TESTING COMPLETED: Root cause identified - axios response interceptor in App.js line 48 uses window.location.href = '/login' on 401 errors, causing full page reload and losing React Router state. This creates intermittent session persistence issues. Both SellersManager and BudgetCreator components are fully implemented and functional when accessible. Navigation works sometimes but fails unpredictably. SOLUTION NEEDED: Replace window.location.href with React Router navigation or proper state management for 401 handling."
+    - agent: "main"
+      message: "SELLERS FIXED: Removed axios response interceptor and implemented proper 401 handling via onAuthError callbacks. SellersManager now works reliably - can navigate, create, edit, and delete sellers. BUDGET CREATOR PARTIALLY FIXED: Navigation works but has React Select component error preventing full render. Fixed some Select value issues but one component still problematic."
 
 user_problem_statement: "Testar a funcionalidade de vendedores (sellers) e orçamentos (budgets) do sistema. Usar a URL do backend REACT_APP_BACKEND_URL=https://budget-system-1.preview.emergentagent.com/api"
 
