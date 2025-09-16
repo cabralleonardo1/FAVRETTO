@@ -543,7 +543,7 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{isEditMode ? 'Editar Orçamento' : 'Novo Orçamento'}</h1>
-          <p className="text-gray-600 mt-1">Crie um novo orçamento para seu cliente</p>
+          <p className="text-gray-600 mt-1">{isEditMode ? 'Edite os detalhes do orçamento' : 'Crie um novo orçamento para seu cliente'}</p>
         </div>
       </div>
 
