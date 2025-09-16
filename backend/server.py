@@ -160,6 +160,7 @@ class BudgetItem(BaseModel):
     canvas_color: Optional[str] = None
     print_percentage: Optional[float] = None
     subtotal: float
+    final_price: Optional[float] = None
 
 class Budget(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
