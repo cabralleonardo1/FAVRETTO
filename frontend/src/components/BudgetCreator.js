@@ -32,6 +32,7 @@ const API = `${BACKEND_URL}/api`;
 const BudgetCreator = ({ user }) => {
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
+  const [sellers, setSellers] = useState([]);
   const [priceItems, setPriceItems] = useState([]);
   const [budgetTypes, setBudgetTypes] = useState([]);
   const [canvasColors, setCanvasColors] = useState([]);
