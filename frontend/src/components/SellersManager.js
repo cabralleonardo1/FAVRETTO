@@ -49,7 +49,11 @@ const SellersManager = ({ onAuthError }) => {
       setSellers(response.data);
     } catch (error) {
       console.error('Error fetching sellers:', error);
-      toast.error('Erro ao carregar vendedores');
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao carregar vendedores');
+      }
     } finally {
       setLoading(false);
     }
