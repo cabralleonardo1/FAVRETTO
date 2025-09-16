@@ -131,7 +131,11 @@ const BudgetsList = ({ onAuthError }) => {
       fetchBudgets();
     } catch (error) {
       console.error('Error duplicating budget:', error);
-      toast.error('Erro ao duplicar orçamento');
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao duplicar orçamento');
+      }
     }
   };
 
