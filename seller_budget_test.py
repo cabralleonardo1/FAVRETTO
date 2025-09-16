@@ -328,7 +328,7 @@ class SellerBudgetTester:
             "Tentar acessar sellers sem autenticação",
             "GET",
             "sellers",
-            401  # Unauthorized
+            403  # Forbidden (FastAPI returns 403 for missing auth)
         )
         
         # Teste 2: Tentar criar vendedor com dados inválidos
