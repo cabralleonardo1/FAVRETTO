@@ -996,14 +996,25 @@ const BudgetCreator = ({ user }) => {
                     <span className="text-sm text-gray-600">Preço Unitário:</span>
                     <span className="font-medium">R$ {item.unit_price.toFixed(2)}</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">Subtotal:</span>
-                    <span className="font-bold text-lg text-green-600">
-                      R$ {item.subtotal.toLocaleString('pt-BR', { 
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2 
-                      })}
-                    </span>
+                  <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600">Subtotal:</span>
+                      <span className="font-medium text-blue-600">
+                        R$ {item.subtotal.toLocaleString('pt-BR', { 
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2 
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600">Preço Final:</span>
+                      <span className="font-bold text-lg text-green-600">
+                        R$ {(item.final_price || item.subtotal).toLocaleString('pt-BR', { 
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2 
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
