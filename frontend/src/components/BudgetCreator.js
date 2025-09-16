@@ -159,8 +159,12 @@ const BudgetCreator = ({ user, onAuthError }) => {
       setIsClientDialogOpen(false);
     } catch (error) {
       console.error('Error saving client:', error);
-      const message = error.response?.data?.detail || 'Erro ao salvar cliente';
-      toast.error(message);
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        const message = error.response?.data?.detail || 'Erro ao salvar cliente';
+        toast.error(message);
+      }
     }
   };
 
