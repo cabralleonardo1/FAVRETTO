@@ -226,6 +226,16 @@ const BudgetsList = ({ onAuthError }) => {
     }
   };
 
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'DRAFT': return <Edit className="w-3 h-3" />;
+      case 'SENT': return <Clock className="w-3 h-3" />;
+      case 'APPROVED': return <CheckCircle className="w-3 h-3" />;
+      case 'REJECTED': return <XCircle className="w-3 h-3" />;
+      default: return <AlertCircle className="w-3 h-3" />;
+    }
+  };
+
   const exportBudgetToPDF = (budget) => {
     const printWindow = window.open('', '_blank');
     const printContent = `
