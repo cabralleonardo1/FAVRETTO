@@ -1236,7 +1236,12 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
               
               {discountAmount > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Desconto ({formData.discount_percentage}%):</span>
+                  <span className="text-gray-600">
+                    Desconto {formData.discount_type === 'percentage' 
+                      ? `(${formData.discount_percentage}%)` 
+                      : '(Valor Fixo)'
+                    }:
+                  </span>
                   <span className="font-medium text-red-600">
                     - R$ {discountAmount.toLocaleString('pt-BR', { 
                       minimumFractionDigits: 2,
