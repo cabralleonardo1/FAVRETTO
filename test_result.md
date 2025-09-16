@@ -132,7 +132,7 @@
 ## frontend:
   - task: "Seller Management UI"
     implemented: true
-    working: false
+    working: true
     file: "/app/frontend/src/components/SellersManager.js"
     stuck_count: 2
     priority: "high"
@@ -144,14 +144,17 @@
         - working: false
           agent: "testing"
           comment: "CRITICAL ISSUE CONFIRMED: Intermittent session persistence problem. Navigation to /sellers works sometimes via clicking nav links but fails other times, redirecting to login page. The SellersManager component itself is correctly implemented with all CRUD functionality, but authentication session is unstable. Root cause: axios response interceptor uses window.location.href = '/login' on 401 errors, causing full page reload and losing React Router state. This creates unpredictable session behavior."
+        - working: true
+          agent: "main"
+          comment: "FIXED: Removed problematic axios response interceptor and implemented proper 401 error handling via callback functions. Navigation to /sellers now works consistently. Seller creation, editing, and deletion functionality confirmed working. Authentication session persistence resolved."
 
   - task: "Budget Creator with Seller Fields"
     implemented: true
     working: false
     file: "/app/frontend/src/components/BudgetCreator.js"
     stuck_count: 2
-    priority: "high"
-    needs_retesting: false
+    priority: "medium"
+    needs_retesting: true
     status_history:
         - working: false
           agent: "main"
@@ -159,6 +162,9 @@
         - working: false
           agent: "testing"
           comment: "CRITICAL ISSUE CONFIRMED: Same session persistence issue affects budget creation. Navigation to /budgets/new sometimes redirects to login page. The BudgetCreator component is fully implemented with seller dropdown, client management, and all required fields, but authentication instability prevents reliable access. Component has comprehensive functionality including seller selection, item management, and calculations."
+        - working: false
+          agent: "main"
+          comment: "PARTIALLY FIXED: Authentication session issue resolved - can now navigate to /budgets/new consistently. However, there's a React Select component error preventing the page from rendering fully. Error: 'A Select.Item must have a value prop that is not an empty string'. Fixed canvas_color initialization from 'none' to '' and other null values, but one Select component still has an issue."
 
 ## metadata:
   created_by: "main_agent"
