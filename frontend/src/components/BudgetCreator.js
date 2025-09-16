@@ -1014,6 +1014,19 @@ const BudgetCreator = ({ user }) => {
                       placeholder="0"
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label>Desconto Item (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      value={item.item_discount_percentage}
+                      onChange={(e) => handleItemChange(index, 'item_discount_percentage', parseFloat(e.target.value) || 0)}
+                      placeholder="0"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-gray-200">
