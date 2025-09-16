@@ -102,7 +102,11 @@ const BudgetsList = ({ onAuthError }) => {
       setBudgets(response.data);
     } catch (error) {
       console.error('Error fetching budgets:', error);
-      toast.error('Erro ao carregar orçamentos');
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao carregar orçamentos');
+      }
     }
   };
 
