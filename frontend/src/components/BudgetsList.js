@@ -116,7 +116,11 @@ const BudgetsList = ({ onAuthError }) => {
       setBudgetHistory(response.data);
     } catch (error) {
       console.error('Error fetching budget history:', error);
-      toast.error('Erro ao carregar histórico');
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao carregar histórico');
+      }
     }
   };
 
