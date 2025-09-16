@@ -713,7 +713,14 @@ async def update_budget(budget_id: str, budget_data: BudgetUpdate, current_user:
     if "items" in update_data:
         subtotal = sum(item.get("final_price") or item.get("subtotal", 0) for item in update_data["items"])
         discount_percentage = update_data.get("discount_percentage", existing_budget.get("discount_percentage", 0))
-        discount_amount = subtotal * (discount_percentage / 100)
+        discount_type = update_data.get("discount_type", existing_budget.get("discount_type", "percentage"))
+        
+        # Calculate discount based on type
+        if discount_type == "fixed":
+            discount_amount = discount_percentage  # When type is "fixed", discount_percentage contains the fixed amount
+        else:  # percentage
+            discount_amount = subtotal * (discount_percentage / 100)
+        
         total = subtotal - discount_amount
         
         update_data.update({
