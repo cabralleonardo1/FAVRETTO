@@ -34,7 +34,7 @@ import { Link } from 'react-router-dom';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const BudgetsList = () => {
+const BudgetsList = ({ onAuthError }) => {
   const [budgets, setBudgets] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
