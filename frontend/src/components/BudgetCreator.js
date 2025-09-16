@@ -313,6 +313,7 @@ const BudgetCreator = ({ user }) => {
     // Calculate subtotal based on item type and dimensions
     const item = updatedItems[index];
     let calculatedSubtotal = 0;
+    let finalPrice = 0;
 
     if (item.unit_price > 0) {
       // For area/volume-based calculations
@@ -324,13 +325,13 @@ const BudgetCreator = ({ user }) => {
         calculatedSubtotal = item.quantity * item.unit_price;
       }
 
-      // Apply print percentage if applicable
-      if (item.print_percentage > 0) {
-        calculatedSubtotal = calculatedSubtotal * (1 + item.print_percentage / 100);
-      }
+      // Calculate final price with print percentage
+      const printMultiplier = item.print_percentage > 0 ? (item.print_percentage / 100) : 0;
+      finalPrice = calculatedSubtotal + (item.area_m2 * printMultiplier);
     }
 
     updatedItems[index].subtotal = calculatedSubtotal;
+    updatedItems[index].final_price = finalPrice;
     setBudgetItems(updatedItems);
   };
 
