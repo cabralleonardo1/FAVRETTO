@@ -278,14 +278,11 @@ const BudgetCreator = ({ user }) => {
 
   const calculateAreaM2 = (length, height, width) => {
     if (length > 0 && height > 0) {
-      const lengthM = length / 100; // Convert cm to m
-      const heightM = height / 100; // Convert cm to m
-      
+      // Values are already in meters, no need to convert
       if (width > 0) {
-        const widthM = width / 100; // Convert cm to m
-        return lengthM * heightM * widthM; // Volume in m³
+        return length * height * width; // Volume in m³
       } else {
-        return lengthM * heightM; // Area in m²
+        return length * height; // Area in m²
       }
     }
     return 0;
