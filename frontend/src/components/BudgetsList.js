@@ -466,34 +466,6 @@ const BudgetsList = ({ onAuthError }) => {
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'APPROVED':
-        return <CheckCircle className="w-4 h-4" />;
-      case 'REJECTED':
-        return <XCircle className="w-4 h-4" />;
-      case 'SENT':
-        return <Clock className="w-4 h-4" />;
-      default:
-        return <AlertCircle className="w-4 h-4" />;
-    }
-  };
-
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'DRAFT':
-        return 'Rascunho';
-      case 'SENT':
-        return 'Enviado';
-      case 'APPROVED':
-        return 'Aprovado';
-      case 'REJECTED':
-        return 'Rejeitado';
-      default:
-        return status;
-    }
-  };
-
   const applyFilters = () => {
     fetchBudgets();
   };
