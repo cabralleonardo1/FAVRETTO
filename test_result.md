@@ -101,3 +101,134 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Testar a funcionalidade de vendedores (sellers) e orçamentos (budgets) do sistema. Usar a URL do backend REACT_APP_BACKEND_URL=https://budget-system-1.preview.emergentagent.com/api"
+
+backend:
+  - task: "Seller CRUD Operations"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ All seller CRUD operations tested and working correctly. GET /api/sellers returns list of active sellers. POST /api/sellers creates new sellers with proper validation (name, email, phone, commission_percentage, registration_number). PUT /api/sellers/{id} updates seller data correctly. DELETE /api/sellers/{id} performs soft delete (sets active=false). Duplicate validation works for both name and registration_number."
+
+  - task: "Seller Authentication and Authorization"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ Authentication working correctly. Admin login with admin/admin123 successful. Token-based authentication working. Proper 403 error returned for unauthenticated requests to seller endpoints."
+
+  - task: "Seller Data Validation"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ Data validation working perfectly. Commission percentage validation (0-100%) returns proper 422 error for invalid values. Required fields validation working. Duplicate name/registration validation prevents duplicates with proper 400 error."
+
+  - task: "Budget CRUD Operations"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ Budget CRUD operations working correctly. GET /api/budgets returns list of budgets. POST /api/budgets creates budgets successfully with all required fields including client_id, seller_id, budget_type, items array."
+
+  - task: "Budget Seller Integration"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ seller_id field integration working perfectly. Budgets can be assigned to sellers. seller_id is properly stored and retrieved. seller_name is automatically populated from seller data when seller_id is provided."
+
+  - task: "Budget Item Discount Calculations"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ Item discount calculations (item_discount_percentage) working correctly. Tested with 8% item discount - calculations are accurate. final_price field properly calculated after applying item-level discounts. Budget-level discount_percentage also working correctly."
+
+  - task: "Budget Calculations and Totals"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ All budget calculations verified and working correctly. Subtotal calculation from items. Discount amount calculation from discount_percentage. Final total calculation (subtotal - discount_amount). Item-level discounts properly applied before budget-level discounts."
+
+  - task: "Error Handling and Edge Cases"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ Comprehensive error handling tested. 404 errors for non-existent sellers/budgets. 422 errors for validation failures. 403 errors for authentication issues. 400 errors for business logic violations (duplicates). All error responses include proper detail messages."
+
+frontend:
+  - task: "Frontend Testing"
+    implemented: false
+    working: "NA"
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Frontend testing not performed as per system limitations. Testing agent focused only on backend API functionality as requested."
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "All seller and budget functionality tested"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "testing"
+      message: "Comprehensive testing completed for seller and budget functionality. All specific requirements from review request have been tested and verified working. Created specialized test script (seller_budget_test.py) that tests all CRUD operations, authentication, data validation, seller-budget integration, and item discount calculations. All 13 tests passed with 100% success rate. Backend API is fully functional and ready for production use."
+    - agent: "testing"
+      message: "TESTING SUMMARY: ✅ GET /api/sellers - Working ✅ POST /api/sellers - Working ✅ PUT /api/sellers/{id} - Working ✅ DELETE /api/sellers/{id} - Working (soft delete) ✅ GET /api/budgets - Working ✅ POST /api/budgets - Working ✅ seller_id integration - Working ✅ item_discount_percentage calculations - Working ✅ Authentication with admin/admin123 - Working ✅ All error handling - Working. No critical issues found. System is production-ready."
