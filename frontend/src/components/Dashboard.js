@@ -15,12 +15,20 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Dashboard = ({ user }) => {
+const Dashboard = ({ user, onAuthError }) => {
   const [stats, setStats] = useState({
     totalClients: 0,
     totalBudgets: 0,
     recentBudgets: [],
-    monthlyRevenue: 0
+    monthlyRevenue: 0,
+    approvalRate: 0,
+    draftBudgets: 0,
+    sentBudgets: 0,
+    approvedBudgets: 0,
+    rejectedBudgets: 0,
+    approvedThisMonth: 0,
+    currentMonth: '',
+    lastUpdated: ''
   });
   const [loading, setLoading] = useState(true);
 
@@ -30,24 +38,15 @@ const Dashboard = ({ user }) => {
 
   const fetchDashboardData = async () => {
     try {
-      const [clientsRes, budgetsRes] = await Promise.all([
+      const [clientsRes, budgetsRes, statisticsRes] = await Promise.all([
         axios.get(`${API}/clients`),
-        axios.get(`${API}/budgets`)
+        axios.get(`${API}/budgets`),
+        axios.get(`${API}/statistics/budgets`)
       ]);
 
       const clients = clientsRes.data;
       const budgets = budgetsRes.data;
-
-      // Calculate monthly revenue (current month)
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      const monthlyRevenue = budgets
-        .filter(budget => {
-          const budgetDate = new Date(budget.created_at);
-          return budgetDate.getMonth() === currentMonth && 
-                 budgetDate.getFullYear() === currentYear &&
-                 budget.status === 'APPROVED';
-        })
+      const statistics = statisticsRes.data;
         .reduce((sum, budget) => sum + budget.total, 0);
 
       setStats({
