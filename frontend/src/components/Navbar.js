@@ -8,7 +8,9 @@ import {
   FileText, 
   Tag,
   LogOut,
-  User
+  User,
+  UserCheck,
+  TrendingUp
 } from 'lucide-react';
 
 const Navbar = ({ user, onLogout }) => {
