@@ -117,6 +117,7 @@ function App() {
                 <Route path="/sellers" element={<SellersManager onAuthError={handleAuthError} />} />
                 <Route path="/price-table" element={<PriceTableManager user={user} onAuthError={handleAuthError} />} />
                 <Route path="/budgets/new" element={<BudgetCreator user={user} onAuthError={handleAuthError} />} />
+                <Route path="/budgets/edit/:budgetId" element={<BudgetCreator user={user} onAuthError={handleAuthError} mode="edit" />} />
                 <Route path="/budgets" element={<BudgetsList onAuthError={handleAuthError} />} />
                 <Route path="/commissions" element={<CommissionsManager />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
