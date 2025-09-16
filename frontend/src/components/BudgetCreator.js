@@ -427,6 +427,7 @@ const BudgetCreator = ({ user, onAuthError }) => {
     try {
       const budgetData = {
         ...formData,
+        seller_id: formData.seller_id === "none" ? "" : formData.seller_id,
         travel_distance_km: parseFloat(formData.travel_distance_km) || 0,
         discount_percentage: parseFloat(formData.discount_percentage) || 0,
         items: budgetItems.map(item => ({
