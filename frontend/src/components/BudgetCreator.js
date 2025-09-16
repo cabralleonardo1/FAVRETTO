@@ -414,6 +414,7 @@ const BudgetCreator = ({ user }) => {
           area_m2: parseFloat(item.area_m2) || null,
           canvas_color: item.canvas_color || null,
           print_percentage: parseFloat(item.print_percentage) || null,
+          item_discount_percentage: parseFloat(item.item_discount_percentage) || null,
           subtotal: item.final_price || item.subtotal
         }))
       };
