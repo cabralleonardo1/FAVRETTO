@@ -1081,6 +1081,17 @@ def main():
     tester.test_duplicate_canvas_color()  # Should fail
     tester.test_delete_canvas_color()
     
+    # Seller management tests (NEW FEATURE)
+    print("\n📋 SELLER MANAGEMENT TESTS (NEW FEATURE)")
+    print("-" * 40)
+    
+    tester.test_create_seller()
+    tester.test_get_sellers()
+    tester.test_get_seller_by_id()
+    tester.test_update_seller()
+    tester.test_seller_duplicate_validation()  # Should fail for duplicates
+    tester.test_delete_seller()  # Soft delete
+    
     # Client management tests (ENHANCED)
     print("\n📋 CLIENT MANAGEMENT TESTS (ENHANCED)")
     print("-" * 40)
