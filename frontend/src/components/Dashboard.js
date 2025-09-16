@@ -188,10 +188,9 @@ const Dashboard = ({ user, onAuthError }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Taxa de Aprovação</p>
-                <p className="text-3xl font-bold text-gray-900">
-                  {stats.totalBudgets > 0 
-                    ? Math.round((stats.recentBudgets.filter(b => b.status === 'APPROVED').length / Math.min(stats.totalBudgets, 5)) * 100)
-                    : 0}%
+                <p className="text-3xl font-bold text-gray-900">{stats.approvalRate}%</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats.approvedBudgets} de {stats.totalBudgets} orçamentos
                 </p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
