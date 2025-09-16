@@ -25,7 +25,8 @@ import {
   Download,
   Printer,
   MoreHorizontal,
-  Trash2
+  Trash2,
+  Settings
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
