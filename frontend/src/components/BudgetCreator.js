@@ -1173,23 +1173,54 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="discount_percentage">Desconto (%)</Label>
-                <div className="relative">
-                  <Input
-                    id="discount_percentage"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    value={formData.discount_percentage}
-                    onChange={(e) => handleFormChange('discount_percentage', parseFloat(e.target.value) || 0)}
-                    className="pr-10"
-                  />
-                  <Percent className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                </div>
+                <Label htmlFor="discount_type">Tipo de Desconto</Label>
+                <Select value={formData.discount_type} onValueChange={(value) => handleFormChange('discount_type', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percentage">Percentual (%)</SelectItem>
+                    <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+              
+              {formData.discount_type === 'percentage' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="discount_percentage">Desconto (%)</Label>
+                  <div className="relative">
+                    <Input
+                      id="discount_percentage"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value={formData.discount_percentage}
+                      onChange={(e) => handleFormChange('discount_percentage', parseFloat(e.target.value) || 0)}
+                      className="pr-10"
+                    />
+                    <Percent className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="discount_amount">Desconto (R$)</Label>
+                  <div className="relative">
+                    <Input
+                      id="discount_amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.discount_amount}
+                      onChange={(e) => handleFormChange('discount_amount', parseFloat(e.target.value) || 0)}
+                      className="pl-10"
+                    />
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="bg-gray-50 rounded-lg p-6 space-y-3">
