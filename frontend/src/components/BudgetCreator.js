@@ -326,9 +326,12 @@ const BudgetCreator = ({ user }) => {
         calculatedSubtotal = item.quantity * item.unit_price;
       }
 
-      // Calculate final price with print percentage
-      const printMultiplier = item.print_percentage > 0 ? (item.print_percentage / 100) : 0;
-      finalPrice = calculatedSubtotal + (item.area_m2 * printMultiplier);
+      // Calculate final price: Área/Volume * % de Impressão
+      if (item.area_m2 > 0 && item.print_percentage > 0) {
+        finalPrice = item.area_m2 * (item.print_percentage / 100);
+      } else {
+        finalPrice = calculatedSubtotal; // Use subtotal if no area or print percentage
+      }
     }
 
     updatedItems[index].subtotal = calculatedSubtotal;
