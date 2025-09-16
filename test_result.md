@@ -134,25 +134,31 @@
     implemented: true
     working: false
     file: "/app/frontend/src/components/SellersManager.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "User reported errors in seller registration. Frontend shows login screen instead of staying authenticated after navigation."
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL ISSUE CONFIRMED: Intermittent session persistence problem. Navigation to /sellers works sometimes via clicking nav links but fails other times, redirecting to login page. The SellersManager component itself is correctly implemented with all CRUD functionality, but authentication session is unstable. Root cause: axios response interceptor uses window.location.href = '/login' on 401 errors, causing full page reload and losing React Router state. This creates unpredictable session behavior."
 
   - task: "Budget Creator with Seller Fields"
     implemented: true
     working: false
     file: "/app/frontend/src/components/BudgetCreator.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "User reported errors in budget creation. Authentication session is being lost during navigation."
+        - working: false
+          agent: "testing"
+          comment: "CRITICAL ISSUE CONFIRMED: Same session persistence issue affects budget creation. Navigation to /budgets/new sometimes redirects to login page. The BudgetCreator component is fully implemented with seller dropdown, client management, and all required fields, but authentication instability prevents reliable access. Component has comprehensive functionality including seller selection, item management, and calculations."
 
 ## metadata:
   created_by: "main_agent"
