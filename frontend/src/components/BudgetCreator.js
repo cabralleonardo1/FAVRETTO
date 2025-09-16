@@ -29,8 +29,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const BudgetCreator = ({ user, onAuthError }) => {
+const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
   const navigate = useNavigate();
+  const { budgetId } = useParams();
+  const isEditMode = mode === "edit" && budgetId;
   const [clients, setClients] = useState([]);
   const [sellers, setSellers] = useState([]);
   const [priceItems, setPriceItems] = useState([]);
