@@ -168,11 +168,11 @@
 
 ## test_plan:
   current_focus:
-    - "Frontend Authentication Session Management"
-    - "Seller Management UI Fix"
-    - "Budget Creator Authentication Fix"
+    - "Fix axios response interceptor in App.js"
+    - "Replace window.location.href with React Router navigation"
+    - "Implement proper 401 error handling"
   stuck_tasks:
-    - "Frontend session persistence"
+    - "Frontend session persistence - axios interceptor issue"
   test_all: false
   test_priority: "high_first"
 
