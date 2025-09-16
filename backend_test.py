@@ -1124,6 +1124,7 @@ def main():
     tester.test_get_budget_types()
     tester.test_create_budget()
     tester.test_create_budget_with_new_fields()  # NEW: area_m2, canvas_color, print_percentage
+    tester.test_create_budget_with_seller()  # NEW: budget with seller and item discounts
     tester.test_get_budgets()
     tester.test_get_budget_by_id()
     tester.test_budget_filters()  # NEW: client_id, status filters
