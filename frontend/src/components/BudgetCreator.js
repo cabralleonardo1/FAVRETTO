@@ -64,6 +64,7 @@ const BudgetCreator = ({ user }) => {
   
   const [formData, setFormData] = useState({
     client_id: '',
+    seller_id: '',
     budget_type: '',
     installation_location: '',
     travel_distance_km: '',
