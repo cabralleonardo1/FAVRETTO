@@ -178,6 +178,54 @@ const BudgetsList = ({ onAuthError }) => {
     }
   };
 
+  const handleChangeStatus = (budget) => {
+    setSelectedBudget(budget);
+    setNewStatus(budget.status);
+    setIsStatusDialogOpen(true);
+  };
+
+  const handleStatusUpdate = async () => {
+    if (!selectedBudget || !newStatus) return;
+
+    try {
+      await axios.patch(`${API}/budgets/${selectedBudget.id}/status`, {
+        status: newStatus
+      });
+      
+      toast.success('Status atualizado com sucesso!');
+      setIsStatusDialogOpen(false);
+      fetchBudgets(); // Recarregar a lista
+    } catch (error) {
+      console.error('Error updating status:', error);
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        const message = error.response?.data?.detail || 'Erro ao atualizar status';
+        toast.error(message);
+      }
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'DRAFT': return 'text-gray-600 bg-gray-100';
+      case 'SENT': return 'text-blue-600 bg-blue-100';
+      case 'APPROVED': return 'text-green-600 bg-green-100';
+      case 'REJECTED': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'DRAFT': return 'Rascunho';
+      case 'SENT': return 'Enviado';
+      case 'APPROVED': return 'Aprovado';
+      case 'REJECTED': return 'Rejeitado';
+      default: return status;
+    }
+  };
+
   const exportBudgetToPDF = (budget) => {
     const printWindow = window.open('', '_blank');
     const printContent = `
