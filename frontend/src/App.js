@@ -91,9 +91,11 @@ function App() {
               <Routes>
                 <Route path="/" element={<Dashboard user={user} />} />
                 <Route path="/clients" element={<ClientsManager />} />
+                <Route path="/sellers" element={<SellersManager />} />
                 <Route path="/price-table" element={<PriceTableManager user={user} />} />
                 <Route path="/budgets/new" element={<BudgetCreator user={user} />} />
                 <Route path="/budgets" element={<BudgetsList />} />
+                <Route path="/commissions" element={<CommissionsManager />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
