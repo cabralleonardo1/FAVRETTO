@@ -229,6 +229,7 @@ class BudgetCreate(BaseModel):
     travel_distance_km: Optional[float] = None
     observations: Optional[str] = None
     discount_percentage: float = 0.0
+    discount_type: str = "percentage"  # "percentage" or "fixed"
 
 class BudgetUpdate(BaseModel):
     client_id: Optional[str] = None
