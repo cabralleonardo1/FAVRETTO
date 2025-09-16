@@ -36,20 +36,7 @@ axios.interceptors.request.use(
   }
 );
 
-axios.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+// Moved 401 handling to individual components to avoid forced page reloads
 
 function App() {
   const [user, setUser] = useState(null);
