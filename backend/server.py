@@ -702,7 +702,7 @@ async def update_budget(budget_id: str, budget_data: BudgetUpdate, current_user:
     
     # If items are being updated, recalculate totals
     if "items" in update_data:
-        subtotal = sum(item.final_price or item.subtotal for item in update_data["items"])
+        subtotal = sum(item.get("final_price") or item.get("subtotal", 0) for item in update_data["items"])
         discount_percentage = update_data.get("discount_percentage", existing_budget.get("discount_percentage", 0))
         discount_amount = subtotal * (discount_percentage / 100)
         total = subtotal - discount_amount
