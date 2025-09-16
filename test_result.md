@@ -102,6 +102,80 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
+## user_problem_statement: "corrija os erros em Vendedores e em Novo Orçamento"
+
+## backend:
+  - task: "Seller CRUD Operations"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "All seller endpoints (GET, POST, PUT, DELETE) tested and working perfectly. Authentication, validation, and soft delete functionality confirmed."
+
+  - task: "Budget CRUD with Seller Integration"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Budget creation with seller_id and item_discount_percentage working correctly. All calculations verified."
+
+## frontend:
+  - task: "Seller Management UI"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/SellersManager.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "User reported errors in seller registration. Frontend shows login screen instead of staying authenticated after navigation."
+
+  - task: "Budget Creator with Seller Fields"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/BudgetCreator.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "User reported errors in budget creation. Authentication session is being lost during navigation."
+
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+## test_plan:
+  current_focus:
+    - "Frontend Authentication Session Management"
+    - "Seller Management UI Fix"
+    - "Budget Creator Authentication Fix"
+  stuck_tasks:
+    - "Frontend session persistence"
+  test_all: false
+  test_priority: "high_first"
+
+## agent_communication:
+    - agent: "main"
+      message: "Backend testing complete - all functionality working. Issue identified: Frontend authentication session is not persisting during navigation. User gets redirected to login screen when trying to access Vendedores or create budgets."
+    - agent: "testing"
+      message: "All backend seller and budget endpoints tested successfully. Authentication with admin/admin123 working. Problem is frontend-only - session management issue."
+
 user_problem_statement: "Testar a funcionalidade de vendedores (sellers) e orçamentos (budgets) do sistema. Usar a URL do backend REACT_APP_BACKEND_URL=https://budget-system-1.preview.emergentagent.com/api"
 
 backend:
