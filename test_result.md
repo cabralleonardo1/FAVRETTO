@@ -181,6 +181,8 @@
       message: "Backend testing complete - all functionality working. Issue identified: Frontend authentication session is not persisting during navigation. User gets redirected to login screen when trying to access Vendedores or create budgets."
     - agent: "testing"
       message: "All backend seller and budget endpoints tested successfully. Authentication with admin/admin123 working. Problem is frontend-only - session management issue."
+    - agent: "testing"
+      message: "COMPREHENSIVE FRONTEND TESTING COMPLETED: Root cause identified - axios response interceptor in App.js line 48 uses window.location.href = '/login' on 401 errors, causing full page reload and losing React Router state. This creates intermittent session persistence issues. Both SellersManager and BudgetCreator components are fully implemented and functional when accessible. Navigation works sometimes but fails unpredictably. SOLUTION NEEDED: Replace window.location.href with React Router navigation or proper state management for 401 handling."
 
 user_problem_statement: "Testar a funcionalidade de vendedores (sellers) e orçamentos (budgets) do sistema. Usar a URL do backend REACT_APP_BACKEND_URL=https://budget-system-1.preview.emergentagent.com/api"
 
