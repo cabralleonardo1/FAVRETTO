@@ -337,6 +337,12 @@ const BudgetCreator = ({ user }) => {
       } else {
         finalPrice = calculatedSubtotal; // Use subtotal if no print percentage
       }
+
+      // Apply item discount if applicable
+      if (item.item_discount_percentage > 0) {
+        const discountAmount = finalPrice * (item.item_discount_percentage / 100);
+        finalPrice = finalPrice - discountAmount;
+      }
     }
 
     updatedItems[index].subtotal = calculatedSubtotal;
