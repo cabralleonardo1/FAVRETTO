@@ -655,15 +655,16 @@ const BudgetCreator = ({ user }) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="budget_type">Tipo de Orçamento *</Label>
-                <Select value={formData.budget_type || ""} onValueChange={(value) => handleFormChange('budget_type', value)}>
+                <Label htmlFor="seller">Vendedor</Label>
+                <Select value={formData.seller_id || ""} onValueChange={(value) => handleFormChange('seller_id', value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
+                    <SelectValue placeholder="Selecione o vendedor (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    {budgetTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
+                    <SelectItem value="">Nenhum vendedor</SelectItem>
+                    {sellers.map((seller) => (
+                      <SelectItem key={seller.id} value={seller.id}>
+                        {seller.name} ({seller.commission_percentage}%)
                       </SelectItem>
                     ))}
                   </SelectContent>
