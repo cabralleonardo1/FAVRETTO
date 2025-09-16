@@ -112,7 +112,7 @@ function App() {
             <Navbar user={user} onLogout={logout} />
             <main className="container mx-auto px-4 py-8">
               <Routes>
-                <Route path="/" element={<Dashboard user={user} />} />
+                <Route path="/" element={<Dashboard user={user} onAuthError={handleAuthError} />} />
                 <Route path="/clients" element={<ClientsManager />} />
                 <Route path="/sellers" element={<SellersManager onAuthError={handleAuthError} />} />
                 <Route path="/price-table" element={<PriceTableManager user={user} onAuthError={handleAuthError} />} />
