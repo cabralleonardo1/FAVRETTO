@@ -83,7 +83,7 @@ const BudgetCreator = ({ user, onAuthError }) => {
       height: 0,
       width: 0,
       area_m2: 0,
-      canvas_color: 'none',
+      canvas_color: '',
       print_percentage: 0,
       item_discount_percentage: 0,
       subtotal: 0,
