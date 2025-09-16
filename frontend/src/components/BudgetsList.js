@@ -206,16 +206,6 @@ const BudgetsList = ({ onAuthError }) => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'DRAFT': return 'text-gray-600 bg-gray-100';
-      case 'SENT': return 'text-blue-600 bg-blue-100';
-      case 'APPROVED': return 'text-green-600 bg-green-100';
-      case 'REJECTED': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
   const getStatusLabel = (status) => {
     switch (status) {
       case 'DRAFT': return 'Rascunho';
