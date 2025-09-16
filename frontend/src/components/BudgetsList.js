@@ -744,6 +744,26 @@ const BudgetsList = ({ onAuthError }) => {
                         <History className="w-4 h-4 mr-2" />
                         Histórico
                       </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditBudget(budget)}
+                        className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Editar
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteBudget(budget.id, budget.client_name)}
+                        className="text-red-600 border-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Excluir
+                      </Button>
                     </div>
                   </div>
                 </div>
