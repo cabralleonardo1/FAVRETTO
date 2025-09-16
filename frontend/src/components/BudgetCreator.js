@@ -29,7 +29,7 @@ import { useNavigate } from 'react-router-dom';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const BudgetCreator = ({ user }) => {
+const BudgetCreator = ({ user, onAuthError }) => {
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const [sellers, setSellers] = useState([]);
