@@ -201,6 +201,98 @@ const Dashboard = ({ user, onAuthError }) => {
         </Card>
       </div>
 
+      {/* Detailed Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="hover-lift">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Rascunhos</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.draftBudgets}</p>
+              </div>
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                <FileText className="w-6 h-6 text-gray-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover-lift">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Enviados</p>
+                <p className="text-2xl font-bold text-blue-900">{stats.sentBudgets}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Clock className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover-lift">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Aprovados</p>
+                <p className="text-2xl font-bold text-green-900">{stats.approvedBudgets}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover-lift">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Rejeitados</p>
+                <p className="text-2xl font-bold text-red-900">{stats.rejectedBudgets}</p>
+              </div>
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Monthly Revenue Card */}
+      <Card className="hover-lift">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <DollarSign className="w-5 h-5 text-green-600" />
+            <span>Receita do Mês - {stats.currentMonth}</span>
+          </CardTitle>
+          <CardDescription>
+            Apenas orçamentos aprovados são considerados na receita
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-3xl font-bold text-green-900">
+                R$ {stats.monthlyRevenue.toLocaleString('pt-BR', { 
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2 
+                })}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                {stats.approvedThisMonth} orçamentos aprovados este mês
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-500">
+                Última atualização: {stats.lastUpdated && new Date(stats.lastUpdated).toLocaleString('pt-BR')}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Recent Budgets */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="hover-lift">
