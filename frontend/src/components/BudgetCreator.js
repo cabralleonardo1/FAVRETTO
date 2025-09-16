@@ -439,8 +439,8 @@ const BudgetCreator = ({ user, onAuthError }) => {
           width: parseFloat(item.width) || null,
           area_m2: parseFloat(item.area_m2) || null,
           canvas_color: item.canvas_color || "",
-          print_percentage: parseFloat(item.print_percentage) || null,
-          item_discount_percentage: parseFloat(item.item_discount_percentage) || null,
+          print_percentage: parseFloat(item.print_percentage) || 0,
+          item_discount_percentage: parseFloat(item.item_discount_percentage) || 0,
           subtotal: item.final_price || item.subtotal
         }))
       };
