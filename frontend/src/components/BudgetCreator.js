@@ -274,7 +274,11 @@ const BudgetCreator = ({ user, onAuthError }) => {
       fetchCanvasColors();
     } catch (error) {
       console.error('Error deleting color:', error);
-      toast.error('Erro ao excluir cor');
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao excluir cor');
+      }
     }
   };
 
