@@ -115,7 +115,9 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
         installation_location: budget.installation_location || "",
         travel_distance_km: budget.travel_distance_km || "",
         observations: budget.observations || "",
-        discount_percentage: budget.discount_percentage || 0
+        discount_percentage: budget.discount_percentage || 0,
+        discount_amount: budget.discount_amount || 0,
+        discount_type: budget.discount_amount > 0 ? 'fixed' : 'percentage'
       });
 
       // Carregar itens do orçamento
