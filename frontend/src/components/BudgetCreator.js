@@ -71,7 +71,9 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
     installation_location: '',
     travel_distance_km: '',
     observations: '',
-    discount_percentage: 0
+    discount_percentage: 0,
+    discount_amount: 0,
+    discount_type: 'percentage' // 'percentage' or 'fixed'
   });
 
   const [budgetItems, setBudgetItems] = useState([
