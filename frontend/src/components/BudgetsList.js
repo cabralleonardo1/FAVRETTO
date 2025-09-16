@@ -135,8 +135,8 @@ const BudgetsList = ({ onAuthError }) => {
   };
 
   const handleEditBudget = (budget) => {
-    // Navegar para a página de edição de orçamento
-    window.location.href = `/budgets/edit/${budget.id}`;
+    // Navegar para a página de edição de orçamento usando React Router
+    window.open(`/budgets/edit/${budget.id}`, '_blank');
   };
 
   const handleDeleteBudget = async (budgetId, budgetClientName) => {
