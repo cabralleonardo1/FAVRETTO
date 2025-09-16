@@ -111,12 +111,15 @@ class SellerBudgetTester:
                 print(f"     - {seller['name']} (Comissão: {seller['commission_percentage']}%)")
         
         # 2. Testar POST /api/sellers - criar novo vendedor
+        import time
+        timestamp = str(int(time.time()))[-6:]
+        
         seller_data = {
-            "name": "João da Silva",
-            "email": "joao@teste.com",
-            "phone": "(11) 99999-9999",
+            "name": f"João da Silva {timestamp}",
+            "email": f"joao{timestamp}@teste.com",
+            "phone": f"(11) 9999{timestamp[-4:]}",
             "commission_percentage": 10.0,
-            "registration_number": "REG001"
+            "registration_number": f"REG{timestamp}"
         }
         
         success2, seller_response = self.run_test(
