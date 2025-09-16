@@ -47,16 +47,30 @@ const Dashboard = ({ user, onAuthError }) => {
       const clients = clientsRes.data;
       const budgets = budgetsRes.data;
       const statistics = statisticsRes.data;
-        .reduce((sum, budget) => sum + budget.total, 0);
+      // Get recent budgets (last 5)
+      const recentBudgets = budgets
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 5);
 
       setStats({
         totalClients: clients.length,
-        totalBudgets: budgets.length,
-        recentBudgets: budgets.slice(0, 5),
-        monthlyRevenue
+        totalBudgets: statistics.total_budgets,
+        recentBudgets,
+        monthlyRevenue: statistics.monthly_revenue,
+        approvalRate: statistics.approval_rate,
+        draftBudgets: statistics.draft_budgets,
+        sentBudgets: statistics.sent_budgets,
+        approvedBudgets: statistics.approved_budgets,
+        rejectedBudgets: statistics.rejected_budgets,
+        approvedThisMonth: statistics.approved_this_month,
+        currentMonth: statistics.current_month,
+        lastUpdated: statistics.last_updated
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      }
     } finally {
       setLoading(false);
     }
