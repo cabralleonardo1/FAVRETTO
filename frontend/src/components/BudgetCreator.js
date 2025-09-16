@@ -522,7 +522,7 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
     return (
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Novo Orçamento</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{isEditMode ? 'Editar Orçamento' : 'Novo Orçamento'}</h1>
         </div>
         <Card>
           <CardContent className="p-8">
@@ -542,7 +542,7 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Novo Orçamento</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{isEditMode ? 'Editar Orçamento' : 'Novo Orçamento'}</h1>
           <p className="text-gray-600 mt-1">Crie um novo orçamento para seu cliente</p>
         </div>
       </div>
