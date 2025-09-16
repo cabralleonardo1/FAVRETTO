@@ -1239,7 +1239,7 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
             ) : (
               <>
                 <Save className="w-4 h-4 mr-2" />
-                Criar Orçamento
+                {isEditMode ? 'Atualizar Orçamento' : 'Criar Orçamento'}
               </>
             )}
           </Button>
