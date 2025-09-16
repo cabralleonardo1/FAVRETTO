@@ -698,7 +698,7 @@ const BudgetCreator = ({ user, onAuthError }) => {
                     <SelectValue placeholder="Selecione o vendedor (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum vendedor</SelectItem>
+                    <SelectItem value="none">Nenhum vendedor</SelectItem>
                     {sellers.map((seller) => (
                       <SelectItem key={seller.id} value={seller.id}>
                         {seller.name} ({seller.commission_percentage}%)
