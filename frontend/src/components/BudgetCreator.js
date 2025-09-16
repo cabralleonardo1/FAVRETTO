@@ -97,14 +97,16 @@ const BudgetCreator = ({ user }) => {
 
   const fetchInitialData = async () => {
     try {
-      const [clientsRes, priceItemsRes, budgetTypesRes, colorsRes] = await Promise.all([
+      const [clientsRes, sellersRes, priceItemsRes, budgetTypesRes, colorsRes] = await Promise.all([
         axios.get(`${API}/clients`),
+        axios.get(`${API}/sellers`),
         axios.get(`${API}/price-table`),
         axios.get(`${API}/budget-types`),
         axios.get(`${API}/canvas-colors`)
       ]);
 
       setClients(clientsRes.data);
+      setSellers(sellersRes.data);
       setPriceItems(priceItemsRes.data);
       setBudgetTypes(budgetTypesRes.data.budget_types);
       setCanvasColors(colorsRes.data);
