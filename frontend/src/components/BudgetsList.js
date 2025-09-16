@@ -50,6 +50,8 @@ const BudgetsList = ({ onAuthError }) => {
   const [budgetHistory, setBudgetHistory] = useState([]);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [newStatus, setNewStatus] = useState('');
 
   useEffect(() => {
     fetchInitialData();
