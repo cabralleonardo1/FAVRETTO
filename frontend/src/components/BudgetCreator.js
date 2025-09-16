@@ -457,7 +457,14 @@ const BudgetCreator = ({ user, onAuthError, mode = "create" }) => {
 
   const calculateTotals = () => {
     const subtotal = budgetItems.reduce((sum, item) => sum + (item.final_price || item.subtotal), 0);
-    const discountAmount = subtotal * (formData.discount_percentage / 100);
+    
+    let discountAmount = 0;
+    if (formData.discount_type === 'percentage') {
+      discountAmount = subtotal * (formData.discount_percentage / 100);
+    } else if (formData.discount_type === 'fixed') {
+      discountAmount = parseFloat(formData.discount_amount) || 0;
+    }
+    
     const total = subtotal - discountAmount;
 
     return { subtotal, discountAmount, total };
