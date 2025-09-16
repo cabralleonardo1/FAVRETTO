@@ -1044,6 +1044,70 @@ const BudgetsList = ({ onAuthError }) => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Status Change Dialog */}
+      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Alterar Status do Orçamento</DialogTitle>
+            <DialogDescription>
+              {selectedBudget && `${selectedBudget.client_name} - ${selectedBudget.budget_type}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">Novo Status</Label>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DRAFT">
+                    <div className="flex items-center space-x-2">
+                      <Edit className="w-4 h-4 text-gray-600" />
+                      <span>Rascunho</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="SENT">
+                    <div className="flex items-center space-x-2">
+                      <Clock className="w-4 h-4 text-blue-600" />
+                      <span>Enviado</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="APPROVED">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <span>Aprovado</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="REJECTED">
+                    <div className="flex items-center space-x-2">
+                      <XCircle className="w-4 h-4 text-red-600" />
+                      <span>Rejeitado</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsStatusDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleStatusUpdate}
+                disabled={!newStatus || newStatus === selectedBudget?.status}
+              >
+                Atualizar Status
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
