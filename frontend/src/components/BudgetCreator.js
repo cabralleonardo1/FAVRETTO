@@ -355,6 +355,7 @@ const BudgetCreator = ({ user }) => {
       area_m2: 0,
       canvas_color: 'none',
       print_percentage: 0,
+      item_discount_percentage: 0,
       subtotal: 0,
       final_price: 0
     }]);
