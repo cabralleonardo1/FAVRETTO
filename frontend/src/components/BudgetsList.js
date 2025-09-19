@@ -328,6 +328,9 @@ const BudgetsList = ({ onAuthError }) => {
       </head>
       <body>
         <div class="header">
+          <div class="header-logo" style="text-align: center; margin-bottom: 20px;">
+            <img src="/cabecalho-favretto.jpg" alt="Cabeçalho Favretto" style="max-width: 100%; height: auto; max-height: 120px; object-fit: contain; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" />
+          </div>
           <h1>Sistema Favretto - Orçamento</h1>
           <p>ID: ${budget.id.slice(0, 8)}... | Data: ${new Date(budget.created_at).toLocaleDateString('pt-BR')}</p>
           <p>Status: <span class="status-badge status-${budget.status.toLowerCase()}">${getStatusLabel(budget.status)}</span></p>
