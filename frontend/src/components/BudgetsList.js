@@ -246,6 +246,19 @@ const BudgetsList = ({ onAuthError }) => {
             border-bottom: 2px solid #ddd;
             padding-bottom: 20px;
           }
+          .header-logo {
+            margin-bottom: 15px;
+          }
+          .header-logo img {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+            max-height: 120px;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          }
           .header h1 { 
             color: #2563eb; 
             margin: 0;
