@@ -334,6 +334,30 @@ backend:
           agent: "testing"
           comment: "✅ NEW DISCOUNT FEATURES WORKING PERFECTLY: Both discount_type 'fixed' and 'percentage' implemented and tested. Fixed discount: discount_amount = discount_percentage (when type is 'fixed'). Percentage discount: discount_amount = subtotal * (discount_percentage / 100). Item-level discounts also working: final_price = subtotal * (1 - item_discount_percentage/100). All calculations verified with real test data. Budget creation and editing with both discount types working flawlessly."
 
+  - task: "CSV Import Functionality"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CSV IMPORT FUNCTIONALITY FULLY TESTED AND WORKING: POST /api/clients/import endpoint tested comprehensively. ✅ File validation: Correctly rejects non-CSV files (.txt, etc.) with 400 error. ✅ File size limit: 10MB limit enforced (test file was 3MB, under limit). ✅ CSV injection prevention: Malicious data with =, +, -, @, tab, \\r characters properly sanitized. ✅ Email validation: Invalid emails correctly rejected with proper error messages. ✅ Duplicate detection: Existing clients detected and skipped with warnings. ✅ 1000 record limit: Correctly processes first 1000 records and warns about limit. ✅ Encoding support: UTF-8 BOM and Latin1 encodings handled correctly. ✅ Column mapping: Both Portuguese (nome, contato, telefone) and English (name, contact_name, phone) column names supported. ✅ Empty file handling: Empty files and headers-only files processed without errors. ✅ Authentication: Properly requires authentication (403 error without token)."
+
+  - task: "CSV Export Functionality"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CSV EXPORT FUNCTIONALITY FULLY TESTED AND WORKING: POST /api/clients/export endpoint tested comprehensively. ✅ Basic export: Successfully exports 1024+ client records with proper CSV format. ✅ Field selection: Configurable field selection working (minimal fields, all fields, custom combinations). ✅ Date formats: Multiple date formats supported (%d/%m/%Y, %Y-%m-%d, %m/%d/%Y). ✅ UTF-8 BOM encoding: Proper UTF-8 BOM encoding for Excel compatibility. ✅ Filename with timestamp: Automatic filename generation with timestamp (clientes_export_YYYYMMDD_HHMMSS.csv). ✅ Portuguese headers: Proper Portuguese column headers (Nome, Contato, Telefone, Email, etc.). ✅ Include/exclude dates: Option to include or exclude creation/update dates. ✅ Streaming response: Large files handled with streaming response. ✅ Authentication: Properly requires authentication (403 error without token)."
+
 frontend:
   - task: "Frontend Testing"
     implemented: false
