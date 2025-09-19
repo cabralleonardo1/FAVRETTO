@@ -893,6 +893,213 @@ async def update_budget_status(
         print(f"Error updating budget status: {e}")
         raise HTTPException(status_code=500, detail="Error updating budget status")
 
+# CSV Import/Export endpoints
+@api_router.post("/clients/import", response_model=ImportResult)
+async def import_clients_csv(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Import clients from CSV file"""
+    try:
+        # Validate file type and size
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(status_code=400, detail="Apenas arquivos CSV são permitidos")
+        
+        # Read file content
+        content = await file.read()
+        if len(content) > 10 * 1024 * 1024:  # 10MB limit
+            raise HTTPException(status_code=400, detail="Arquivo muito grande. Limite máximo: 10MB")
+        
+        # Parse CSV
+        try:
+            csv_content = content.decode('utf-8-sig')  # Handle BOM
+        except UnicodeDecodeError:
+            try:
+                csv_content = content.decode('latin1')
+            except UnicodeDecodeError:
+                raise HTTPException(status_code=400, detail="Encoding do arquivo não suportado. Use UTF-8 ou Latin1")
+        
+        # Read CSV data
+        csv_reader = csv.DictReader(io.StringIO(csv_content))
+        
+        # Expected CSV columns mapping
+        column_mapping = {
+            'nome': 'name',
+            'name': 'name',
+            'contato': 'contact_name',
+            'contact_name': 'contact_name',
+            'telefone': 'phone',
+            'phone': 'phone',
+            'email': 'email',
+            'endereco': 'address',
+            'address': 'address',
+            'cidade': 'city',
+            'city': 'city',
+            'estado': 'state',
+            'state': 'state',
+            'cep': 'zip_code',
+            'zip_code': 'zip_code'
+        }
+        
+        # Process rows
+        errors = []
+        warnings = []
+        imported_count = 0
+        total_processed = 0
+        
+        for row_number, row in enumerate(csv_reader, start=2):  # Start at 2 because line 1 is header
+            total_processed += 1
+            
+            if total_processed > 1000:  # Limit to 1000 records per import
+                warnings.append({
+                    'message': f'Limite de 1000 registros atingido. Apenas os primeiros 1000 foram processados.'
+                })
+                break
+            
+            # Map CSV columns to system fields
+            mapped_row = {}
+            for csv_col, value in row.items():
+                system_field = column_mapping.get(csv_col.lower().strip())
+                if system_field:
+                    mapped_row[system_field] = value
+            
+            # Validate data
+            clean_data, row_errors = validate_client_data(mapped_row, row_number)
+            
+            if row_errors:
+                errors.extend(row_errors)
+                continue
+            
+            # Check for duplicates
+            existing_client = await db.clients.find_one({"name": clean_data["name"]})
+            if existing_client:
+                warnings.append({
+                    'row': row_number,
+                    'message': f'Cliente "{clean_data["name"]}" já existe e foi ignorado'
+                })
+                continue
+            
+            # Create client
+            try:
+                client_data = ClientCreate(**clean_data)
+                client_dict = client_data.dict()
+                client_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+                client_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+                
+                await db.clients.insert_one(client_dict)
+                imported_count += 1
+                
+            except Exception as e:
+                errors.append({
+                    'row': row_number,
+                    'message': f'Erro ao criar cliente: {str(e)}'
+                })
+        
+        success = len(errors) == 0 or imported_count > 0
+        
+        return ImportResult(
+            success=success,
+            total_processed=total_processed,
+            imported_count=imported_count,
+            errors=errors,
+            warnings=warnings
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error importing CSV: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno durante importação")
+
+@api_router.post("/clients/export")
+async def export_clients_csv(
+    config: ExportConfig,
+    current_user: User = Depends(get_current_user)
+):
+    """Export clients to CSV file"""
+    try:
+        # Get all clients
+        clients = await db.clients.find().to_list(length=None)
+        
+        if not clients:
+            raise HTTPException(status_code=404, detail="Nenhum cliente encontrado para exportar")
+        
+        # Prepare CSV data
+        output = io.StringIO()
+        
+        # Column headers mapping
+        headers_mapping = {
+            'name': 'Nome',
+            'contact_name': 'Contato',
+            'phone': 'Telefone',
+            'email': 'Email',
+            'address': 'Endereço',
+            'city': 'Cidade',
+            'state': 'Estado',
+            'zip_code': 'CEP',
+            'created_at': 'Data Criação',
+            'updated_at': 'Data Atualização'
+        }
+        
+        # Get headers for selected fields
+        headers = [headers_mapping.get(field, field) for field in config.fields]
+        if config.include_dates:
+            headers.extend(['Data Criação', 'Data Atualização'])
+        
+        writer = csv.writer(output)
+        writer.writerow(headers)
+        
+        # Write data rows
+        for client in clients:
+            formatted_client = format_client_for_export(client, config)
+            
+            row_data = [formatted_client.get(field, '') for field in config.fields]
+            
+            if config.include_dates:
+                created_at = client.get('created_at', '')
+                updated_at = client.get('updated_at', '')
+                
+                if isinstance(created_at, str):
+                    try:
+                        created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00')).strftime(config.date_format)
+                    except:
+                        created_at = ''
+                
+                if isinstance(updated_at, str):
+                    try:
+                        updated_at = datetime.fromisoformat(updated_at.replace('Z', '+00:00')).strftime(config.date_format)
+                    except:
+                        updated_at = ''
+                
+                row_data.extend([created_at, updated_at])
+            
+            writer.writerow(row_data)
+        
+        # Prepare response
+        output.seek(0)
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"clientes_export_{timestamp}.csv"
+        
+        # Create streaming response
+        def generate():
+            yield output.getvalue().encode('utf-8-sig')  # Include BOM for Excel compatibility
+        
+        return StreamingResponse(
+            generate(),
+            media_type='text/csv',
+            headers={
+                'Content-Disposition': f'attachment; filename="{filename}"'
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error exporting CSV: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno durante exportação")
+
 # Endpoint for budget statistics
 @api_router.get("/statistics/budgets")
 async def get_budget_statistics(current_user: User = Depends(get_current_user)):
