@@ -211,7 +211,7 @@
     - agent: "main"
       message: "BUDGET EDIT/DELETE FUNCTIONALITY IMPLEMENTED: Successfully added Edit and Delete buttons to all budgets in the list page (14 buttons each confirmed). Edit button opens budget in new tab using /budgets/edit/:id route with BudgetCreator in edit mode. Delete button shows confirmation dialog and removes budget with proper error handling. Modified BudgetCreator to support both create and edit modes with dynamic titles, pre-filled data loading, and appropriate API calls (POST for create, PUT for edit)."
 
-user_problem_statement: "Testar a funcionalidade de vendedores (sellers) e orçamentos (budgets) do sistema. Usar a URL do backend REACT_APP_BACKEND_URL=https://budget-system-1.preview.emergentagent.com/api"
+user_problem_statement: "Testar especificamente a nova funcionalidade de Import/Export de clientes CSV implementada"
 
 backend:
   - task: "Seller CRUD Operations"
