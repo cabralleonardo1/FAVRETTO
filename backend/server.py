@@ -439,11 +439,60 @@ async def update_client(client_id: str, client_data: ClientUpdate, current_user:
     return Client(**updated_client)
 
 @api_router.delete("/clients/{client_id}")
-async def delete_client(client_id: str, current_user: User = Depends(get_current_user)):
-    result = await db.clients.delete_one({"id": client_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Client not found")
-    return {"message": "Client deleted successfully"}
+async def delete_client(
+    client_id: str, 
+    force_delete: bool = False,
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        # Check if client exists
+        client = await db.clients.find_one({"id": client_id})
+        if not client:
+            raise HTTPException(status_code=404, detail="Cliente não encontrado")
+        
+        # Use the same dependency checking logic as bulk delete
+        delete_result = await safe_delete_client_with_dependencies(client_id, force_delete)
+        
+        if delete_result['success']:
+            # Log the deletion
+            await log_audit_action(
+                user=current_user,
+                action="DELETE_CLIENT",
+                resource_type="client",
+                resource_ids=[client_id],
+                details={
+                    'client_name': client.get('name'),
+                    'force_delete': force_delete,
+                    'budgets_deleted': delete_result['budgets_deleted'],
+                    'dependencies': delete_result['dependencies']
+                }
+            )
+            
+            return {
+                "message": "Cliente excluído com sucesso!",
+                "budgets_deleted": delete_result['budgets_deleted']
+            }
+        else:
+            # Return detailed error about dependencies
+            dependencies = delete_result['dependencies']
+            if dependencies.get('has_dependencies'):
+                detail_msg = f"Cliente possui {dependencies['budgets']} orçamento(s) associado(s)"
+                if dependencies['approved_budgets'] > 0:
+                    detail_msg += f" ({dependencies['approved_budgets']} aprovados)"
+                detail_msg += ". Use force_delete=true para excluir mesmo assim."
+                
+                raise HTTPException(
+                    status_code=400,
+                    detail=detail_msg
+                )
+            else:
+                raise HTTPException(status_code=500, detail=delete_result['error'])
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting client: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno ao excluir cliente")
 
 # Seller routes
 @api_router.post("/sellers", response_model=Seller)
