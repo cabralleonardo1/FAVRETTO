@@ -137,15 +137,10 @@ if __name__ == "__main__":
     print("⚠️  ATENÇÃO: Esta operação irá excluir TODOS os clientes!")
     print("⚠️  Isso inclui clientes E seus orçamentos associados!")
     print("=" * 50)
+    print("🚀 Iniciando limpeza automática conforme solicitado...")
     
-    # Confirmar operação
-    confirm = input("\nDeseja continuar? (digite 'SIM' para confirmar): ")
-    
-    if confirm.upper() == "SIM":
-        success = cleanup_all_test_clients()
-        if success:
-            print("\n✅ Limpeza concluída com sucesso!")
-        else:
-            print("\n❌ Limpeza concluída com problemas.")
+    success = cleanup_all_test_clients()
+    if success:
+        print("\n✅ Limpeza concluída com sucesso!")
     else:
-        print("\n🚫 Operação cancelada pelo usuário.")
+        print("\n❌ Limpeza concluída com problemas.")
