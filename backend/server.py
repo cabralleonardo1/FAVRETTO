@@ -1125,6 +1125,190 @@ async def export_clients_csv(
         print(f"Error exporting CSV: {e}")
         raise HTTPException(status_code=500, detail="Erro interno durante exportação")
 
+@api_router.post("/clients/bulk-delete", response_model=BulkDeleteResult)
+async def bulk_delete_clients(
+    request: BulkDeleteRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Bulk delete clients with dependency checking and audit logging"""
+    try:
+        # Only admin users can bulk delete
+        if current_user.role != 'admin':
+            raise HTTPException(
+                status_code=403, 
+                detail="Apenas administradores podem excluir clientes em massa"
+            )
+        
+        if not request.client_ids:
+            raise HTTPException(status_code=400, detail="Nenhum cliente selecionado")
+        
+        if len(request.client_ids) > 100:  # Limit bulk operations
+            raise HTTPException(
+                status_code=400, 
+                detail="Máximo de 100 clientes por operação"
+            )
+        
+        result = BulkDeleteResult(
+            success=False,
+            total_requested=len(request.client_ids),
+            deleted_count=0,
+            skipped_count=0,
+            errors=[],
+            warnings=[],
+            dependencies_found=[]
+        )
+        
+        # Process each client
+        successfully_deleted = []
+        
+        for client_id in request.client_ids:
+            try:
+                # Get client info for logging
+                client = await db.clients.find_one({"id": client_id})
+                if not client:
+                    result.errors.append({
+                        'client_id': client_id,
+                        'message': 'Cliente não encontrado'
+                    })
+                    result.skipped_count += 1
+                    continue
+                
+                # Attempt deletion with dependency check
+                delete_result = await safe_delete_client_with_dependencies(
+                    client_id, 
+                    request.force_delete
+                )
+                
+                if delete_result['success']:
+                    result.deleted_count += 1
+                    successfully_deleted.append({
+                        'client_id': client_id,
+                        'client_name': client.get('name', 'Unknown'),
+                        'budgets_deleted': delete_result['budgets_deleted']
+                    })
+                    
+                    # Log successful deletion
+                    await log_audit_action(
+                        user=current_user,
+                        action="BULK_DELETE_CLIENT",
+                        resource_type="client",
+                        resource_ids=[client_id],
+                        details={
+                            'client_name': client.get('name'),
+                            'force_delete': request.force_delete,
+                            'budgets_deleted': delete_result['budgets_deleted'],
+                            'dependencies': delete_result['dependencies']
+                        }
+                    )
+                else:
+                    result.skipped_count += 1
+                    
+                    # Check if it's a dependency issue
+                    dependencies = delete_result['dependencies']
+                    if dependencies.get('has_dependencies') and not request.force_delete:
+                        result.dependencies_found.append({
+                            'client_id': client_id,
+                            'client_name': client.get('name'),
+                            'budgets': dependencies['budgets'],
+                            'approved_budgets': dependencies['approved_budgets'],
+                            'pending_budgets': dependencies['pending_budgets'],
+                            'total_value': dependencies['total_budget_value'],
+                            'details': dependencies['details']
+                        })
+                        
+                        result.warnings.append({
+                            'client_id': client_id,
+                            'client_name': client.get('name'),
+                            'message': f"Cliente possui dependências: {', '.join(dependencies['details'])}"
+                        })
+                    else:
+                        result.errors.append({
+                            'client_id': client_id,
+                            'client_name': client.get('name'),
+                            'message': delete_result['error']
+                        })
+                        
+            except Exception as e:
+                result.errors.append({
+                    'client_id': client_id,
+                    'message': f'Erro interno: {str(e)}'
+                })
+                result.skipped_count += 1
+        
+        # Log bulk operation summary
+        await log_audit_action(
+            user=current_user,
+            action="BULK_DELETE_CLIENTS_SUMMARY",
+            resource_type="bulk_operation",
+            resource_ids=request.client_ids,
+            details={
+                'total_requested': result.total_requested,
+                'deleted_count': result.deleted_count,
+                'skipped_count': result.skipped_count,
+                'force_delete': request.force_delete,
+                'successfully_deleted': successfully_deleted
+            }
+        )
+        
+        result.success = result.deleted_count > 0
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in bulk delete: {e}")
+        raise HTTPException(status_code=500, detail="Erro interno durante exclusão em massa")
+
+@api_router.post("/clients/check-dependencies")
+async def check_clients_dependencies(
+    client_ids: List[str],
+    current_user: User = Depends(get_current_user)
+):
+    """Check dependencies for multiple clients before deletion"""
+    try:
+        if current_user.role != 'admin':
+            raise HTTPException(status_code=403, detail="Acesso negado")
+        
+        dependencies_summary = {
+            'total_clients': len(client_ids),
+            'clients_with_dependencies': 0,
+            'total_budgets': 0,
+            'total_approved_budgets': 0,
+            'total_budget_value': 0.0,
+            'details': []
+        }
+        
+        for client_id in client_ids:
+            client = await db.clients.find_one({"id": client_id})
+            if not client:
+                continue
+                
+            dependencies = await check_client_dependencies(client_id)
+            
+            if dependencies['has_dependencies']:
+                dependencies_summary['clients_with_dependencies'] += 1
+                dependencies_summary['total_budgets'] += dependencies['budgets']
+                dependencies_summary['total_approved_budgets'] += dependencies['approved_budgets']
+                dependencies_summary['total_budget_value'] += dependencies['total_budget_value']
+                
+                dependencies_summary['details'].append({
+                    'client_id': client_id,
+                    'client_name': client.get('name'),
+                    'budgets': dependencies['budgets'],
+                    'approved_budgets': dependencies['approved_budgets'],
+                    'pending_budgets': dependencies['pending_budgets'],
+                    'total_value': dependencies['total_budget_value'],
+                    'messages': dependencies['details']
+                })
+        
+        return dependencies_summary
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error checking dependencies: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao verificar dependências")
+
 # Endpoint for budget statistics
 @api_router.get("/statistics/budgets")
 async def get_budget_statistics(current_user: User = Depends(get_current_user)):
