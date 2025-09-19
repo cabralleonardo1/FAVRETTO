@@ -211,7 +211,7 @@
     - agent: "main"
       message: "BUDGET EDIT/DELETE FUNCTIONALITY IMPLEMENTED: Successfully added Edit and Delete buttons to all budgets in the list page (14 buttons each confirmed). Edit button opens budget in new tab using /budgets/edit/:id route with BudgetCreator in edit mode. Delete button shows confirmation dialog and removes budget with proper error handling. Modified BudgetCreator to support both create and edit modes with dynamic titles, pre-filled data loading, and appropriate API calls (POST for create, PUT for edit)."
 
-user_problem_statement: "Testar especificamente a funcionalidade de exclusão em massa de clientes implementada"
+user_problem_statement: "Testar especificamente a funcionalidade de exclusão de clientes corrigida"
 
 backend:
   - task: "Bulk Delete Dependencies Check Endpoint"
