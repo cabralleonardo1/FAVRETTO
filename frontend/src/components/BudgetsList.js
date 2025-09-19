@@ -849,9 +849,22 @@ const BudgetsList = ({ onAuthError }) => {
       {/* Budget Details Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Detalhes do Orçamento</DialogTitle>
-            <DialogDescription>
+          <DialogHeader className="space-y-4">
+            {/* Cabeçalho Personalizado Favretto */}
+            <div className="w-full flex justify-center mb-4">
+              <img 
+                src="/cabecalho-favretto.jpg" 
+                alt="Cabeçalho Favretto" 
+                className="max-w-full h-auto max-h-32 object-contain rounded-lg shadow-sm"
+                style={{
+                  maxHeight: '120px',
+                  width: 'auto',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+            <DialogTitle className="text-center">Detalhes do Orçamento</DialogTitle>
+            <DialogDescription className="text-center">
               {selectedBudget && `${selectedBudget.client_name} - ${selectedBudget.budget_type}`}
             </DialogDescription>
           </DialogHeader>
