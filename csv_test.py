@@ -832,7 +832,7 @@ Company EN,Contact EN,(11) 99999-2222,en@test.com,Street EN 456,Rio de Janeiro,R
             "CSV Export - No Authentication (Should Fail)",
             "POST",
             "clients/export",
-            401,  # or 403
+            403,  # 403 is correct for FastAPI
             data=export_config,
             token=None
         )
