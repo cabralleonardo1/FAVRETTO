@@ -14,7 +14,12 @@ import {
   Phone, 
   Mail, 
   MapPin,
-  User
+  User,
+  CheckSquare,
+  Square,
+  AlertTriangle,
+  Trash,
+  Shield
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
