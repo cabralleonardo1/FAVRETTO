@@ -286,6 +286,31 @@ class ExportConfig(BaseModel):
     include_dates: bool = True
     date_format: str = "%d/%m/%Y"
 
+class BulkDeleteRequest(BaseModel):
+    client_ids: List[str]
+    force_delete: bool = False  # Force delete even with dependencies
+
+class BulkDeleteResult(BaseModel):
+    success: bool
+    total_requested: int
+    deleted_count: int
+    skipped_count: int
+    errors: List[dict]
+    warnings: List[dict]
+    dependencies_found: List[dict]
+
+class AuditLog(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    user_name: str
+    action: str
+    resource_type: str
+    resource_ids: List[str]
+    details: dict
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class BudgetHistory(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     budget_id: str
