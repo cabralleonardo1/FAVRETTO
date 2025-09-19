@@ -274,6 +274,18 @@ class CommissionUpdate(BaseModel):
     payment_date: Optional[datetime] = None
     observations: Optional[str] = None
 
+class ImportResult(BaseModel):
+    success: bool
+    total_processed: int
+    imported_count: int
+    errors: List[dict]
+    warnings: List[dict]
+
+class ExportConfig(BaseModel):
+    fields: List[str] = ["name", "contact_name", "phone", "email", "address", "city", "state", "zip_code"]
+    include_dates: bool = True
+    date_format: str = "%d/%m/%Y"
+
 class BudgetHistory(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     budget_id: str
