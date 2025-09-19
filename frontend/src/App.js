@@ -120,6 +120,7 @@ function App() {
                 <Route path="/budgets/new" element={<BudgetCreator user={user} onAuthError={handleAuthError} />} />
                 <Route path="/budgets/edit/:budgetId" element={<BudgetCreator user={user} onAuthError={handleAuthError} mode="edit" />} />
                 <Route path="/budgets" element={<BudgetsList onAuthError={handleAuthError} />} />
+                <Route path="/clients/import-export" element={<ClientsImportExport onAuthError={handleAuthError} />} />
                 <Route path="/commissions" element={<CommissionsManager />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
