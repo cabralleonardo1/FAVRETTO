@@ -955,6 +955,91 @@ async def get_budget_statistics(current_user: User = Depends(get_current_user)):
         print(f"Error calculating statistics: {e}")
         raise HTTPException(status_code=500, detail="Error calculating budget statistics")
 
+# CSV Import/Export Helper Functions
+def sanitize_csv_data(data: str) -> str:
+    """Sanitize CSV data to prevent injection attacks"""
+    if not data or not isinstance(data, str):
+        return ""
+    
+    # Remove potentially dangerous characters and formulas
+    dangerous_chars = ['=', '+', '-', '@', '\t', '\r']
+    for char in dangerous_chars:
+        if data.startswith(char):
+            data = "'" + data  # Prefix with single quote to neutralize formula
+    
+    # Clean up the string
+    data = data.strip()
+    return data
+
+def validate_client_data(row_data: dict, row_number: int) -> tuple[dict, list]:
+    """Validate client data and return clean data + errors"""
+    errors = []
+    clean_data = {}
+    
+    # Required fields validation
+    required_fields = ['name']
+    for field in required_fields:
+        if not row_data.get(field, '').strip():
+            errors.append({
+                'row': row_number,
+                'field': field,
+                'message': f'Campo obrigatório "{field}" está vazio'
+            })
+            continue
+        clean_data[field] = sanitize_csv_data(row_data[field])
+    
+    # Optional fields with validation
+    optional_fields = {
+        'contact_name': str,
+        'phone': str,
+        'email': str,
+        'address': str,
+        'city': str,
+        'state': str,
+        'zip_code': str
+    }
+    
+    for field, field_type in optional_fields.items():
+        value = row_data.get(field, '').strip()
+        if value:
+            if field == 'email' and value:
+                # Basic email validation
+                email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+                if not re.match(email_pattern, value):
+                    errors.append({
+                        'row': row_number,
+                        'field': field,
+                        'message': 'Formato de email inválido'
+                    })
+                    continue
+            
+            clean_data[field] = sanitize_csv_data(value)
+        else:
+            clean_data[field] = ""
+    
+    return clean_data, errors
+
+def format_client_for_export(client: dict, config: ExportConfig) -> dict:
+    """Format client data for CSV export"""
+    formatted = {}
+    
+    for field in config.fields:
+        if field in client:
+            value = client[field]
+            if value is None:
+                formatted[field] = ""
+            elif isinstance(value, datetime):
+                if config.include_dates:
+                    formatted[field] = value.strftime(config.date_format)
+                else:
+                    formatted[field] = ""
+            else:
+                formatted[field] = str(value)
+        else:
+            formatted[field] = ""
+    
+    return formatted
+
 # Commission routes
 async def create_commission_for_budget(budget: Budget, created_by: str):
     """Helper function to create commission when budget is approved"""
