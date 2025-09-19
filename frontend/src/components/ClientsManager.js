@@ -687,8 +687,18 @@ const ClientsManager = ({ onAuthError }) => {
           {filteredClients.length > 0 ? (
             <div className="space-y-4">
               {filteredClients.map((client) => (
-                <div key={client.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div key={client.id} className={`flex items-center justify-between p-4 rounded-lg transition-colors ${selectedClients.has(client.id) ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 hover:bg-gray-100'}`}>
                   <div className="flex items-center space-x-4">
+                    <button
+                      onClick={() => toggleClientSelection(client.id)}
+                      className="flex items-center justify-center w-5 h-5 border border-gray-300 rounded hover:bg-gray-100"
+                    >
+                      {selectedClients.has(client.id) ? (
+                        <CheckSquare className="w-4 h-4 text-blue-600" />
+                      ) : (
+                        <Square className="w-4 h-4 text-gray-400" />
+                      )}
+                    </button>
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                       <User className="w-6 h-6 text-white" />
                     </div>
