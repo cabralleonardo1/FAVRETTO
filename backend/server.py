@@ -1272,6 +1272,120 @@ def format_client_for_export(client: dict, config: ExportConfig) -> dict:
     
     return formatted
 
+# Audit and Dependencies Helper Functions
+async def log_audit_action(
+    user: User, 
+    action: str, 
+    resource_type: str, 
+    resource_ids: List[str], 
+    details: dict,
+    request = None
+):
+    """Log audit action to database"""
+    try:
+        audit_log = AuditLog(
+            user_id=user.id,
+            user_name=user.username,
+            action=action,
+            resource_type=resource_type,
+            resource_ids=resource_ids,
+            details=details,
+            ip_address=getattr(request, 'client', {}).get('host') if request else None,
+            user_agent=getattr(request, 'headers', {}).get('user-agent') if request else None
+        )
+        
+        audit_dict = audit_log.dict()
+        audit_dict["created_at"] = audit_log.created_at.isoformat()
+        
+        await db.audit_logs.insert_one(audit_dict)
+        return True
+    except Exception as e:
+        print(f"Error logging audit action: {e}")
+        return False
+
+async def check_client_dependencies(client_id: str) -> dict:
+    """Check if client has dependencies that prevent deletion"""
+    dependencies = {
+        'has_dependencies': False,
+        'budgets': 0,
+        'approved_budgets': 0,
+        'pending_budgets': 0,
+        'total_budget_value': 0.0,
+        'details': []
+    }
+    
+    try:
+        # Check for budgets
+        budgets = await db.budgets.find({"client_id": client_id}).to_list(length=None)
+        dependencies['budgets'] = len(budgets)
+        
+        if budgets:
+            dependencies['has_dependencies'] = True
+            
+            approved_budgets = [b for b in budgets if b.get('status') == 'APPROVED']
+            pending_budgets = [b for b in budgets if b.get('status') in ['DRAFT', 'SENT']]
+            
+            dependencies['approved_budgets'] = len(approved_budgets)
+            dependencies['pending_budgets'] = len(pending_budgets)
+            dependencies['total_budget_value'] = sum(b.get('total', 0) for b in approved_budgets)
+            
+            # Add detail messages
+            if approved_budgets:
+                total_value = dependencies['total_budget_value']
+                dependencies['details'].append(
+                    f"{len(approved_budgets)} orçamentos aprovados (Total: R$ {total_value:,.2f})"
+                )
+            
+            if pending_budgets:
+                dependencies['details'].append(
+                    f"{len(pending_budgets)} orçamentos pendentes"
+                )
+        
+        return dependencies
+        
+    except Exception as e:
+        print(f"Error checking dependencies for client {client_id}: {e}")
+        return dependencies
+
+async def safe_delete_client_with_dependencies(client_id: str, force_delete: bool = False) -> dict:
+    """Safely delete client considering dependencies"""
+    result = {
+        'success': False,
+        'client_deleted': False,
+        'budgets_deleted': 0,
+        'dependencies': {},
+        'error': None
+    }
+    
+    try:
+        # Check dependencies first
+        dependencies = await check_client_dependencies(client_id)
+        result['dependencies'] = dependencies
+        
+        if dependencies['has_dependencies'] and not force_delete:
+            result['error'] = f"Cliente possui {dependencies['budgets']} orçamentos associados"
+            return result
+        
+        # If force delete, delete dependencies first
+        if dependencies['has_dependencies'] and force_delete:
+            # Delete all budgets for this client
+            delete_result = await db.budgets.delete_many({"client_id": client_id})
+            result['budgets_deleted'] = delete_result.deleted_count
+        
+        # Delete the client
+        client_result = await db.clients.delete_one({"id": client_id})
+        result['client_deleted'] = client_result.deleted_count > 0
+        result['success'] = result['client_deleted']
+        
+        if not result['client_deleted']:
+            result['error'] = "Cliente não encontrado"
+        
+        return result
+        
+    except Exception as e:
+        result['error'] = f"Erro ao excluir cliente: {str(e)}"
+        return result
+
 # Commission routes
 async def create_commission_for_budget(budget: Budget, created_by: str):
     """Helper function to create commission when budget is approved"""
