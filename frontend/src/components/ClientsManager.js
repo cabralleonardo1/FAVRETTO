@@ -27,7 +27,7 @@ import { toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const ClientsManager = () => {
+const ClientsManager = ({ onAuthError }) => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,6 +41,14 @@ const ClientsManager = () => {
     address: '',
     observations: ''
   });
+
+  // Bulk delete states
+  const [selectedClients, setSelectedClients] = useState(new Set());
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteStep, setDeleteStep] = useState('confirm'); // 'confirm', 'dependencies', 'processing'
+  const [dependenciesData, setDependenciesData] = useState(null);
+  const [deleteResults, setDeleteResults] = useState(null);
+  const [forceDelete, setForceDelete] = useState(false);
 
   useEffect(() => {
     fetchClients();
