@@ -83,7 +83,101 @@ const ClientsManager = ({ onAuthError }) => {
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error saving client:', error);
-      toast.error('Erro ao salvar cliente');
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        const message = error.response?.data?.detail || 'Erro ao salvar cliente';
+        toast.error(message);
+      }
+    }
+  };
+
+  // Bulk selection functions
+  const toggleClientSelection = (clientId) => {
+    const newSelected = new Set(selectedClients);
+    if (newSelected.has(clientId)) {
+      newSelected.delete(clientId);
+    } else {
+      newSelected.add(clientId);
+    }
+    setSelectedClients(newSelected);
+  };
+
+  const toggleAllClients = () => {
+    if (selectedClients.size === filteredClients.length) {
+      setSelectedClients(new Set());
+    } else {
+      setSelectedClients(new Set(filteredClients.map(client => client.id)));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedClients(new Set());
+    setIsDeleteDialogOpen(false);
+    setDeleteStep('confirm');
+    setDependenciesData(null);
+    setDeleteResults(null);
+    setForceDelete(false);
+  };
+
+  // Check dependencies before deletion
+  const checkDependencies = async () => {
+    try {
+      setDeleteStep('processing');
+      const response = await axios.post(`${API}/clients/check-dependencies`, 
+        Array.from(selectedClients)
+      );
+      
+      setDependenciesData(response.data);
+      setDeleteStep('dependencies');
+    } catch (error) {
+      console.error('Error checking dependencies:', error);
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        toast.error('Erro ao verificar dependências');
+        setDeleteStep('confirm');
+      }
+    }
+  };
+
+  // Execute bulk delete
+  const executeBulkDelete = async () => {
+    try {
+      setDeleteStep('processing');
+      
+      const response = await axios.post(`${API}/clients/bulk-delete`, {
+        client_ids: Array.from(selectedClients),
+        force_delete: forceDelete
+      });
+      
+      setDeleteResults(response.data);
+      
+      if (response.data.success) {
+        toast.success(
+          `${response.data.deleted_count} cliente(s) excluído(s) com sucesso!`
+        );
+        
+        // Refresh clients list
+        fetchClients();
+        
+        // Clear selection after successful deletion
+        setTimeout(() => {
+          clearSelection();
+        }, 3000);
+      } else {
+        toast.error('Exclusão concluída com problemas');
+      }
+      
+    } catch (error) {
+      console.error('Error in bulk delete:', error);
+      if (error.response?.status === 401 && onAuthError) {
+        onAuthError();
+      } else {
+        const message = error.response?.data?.detail || 'Erro ao excluir clientes';
+        toast.error(message);
+        setDeleteStep('confirm');
+      }
     }
   };
 
