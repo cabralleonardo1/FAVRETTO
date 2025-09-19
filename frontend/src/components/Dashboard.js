@@ -378,6 +378,17 @@ const Dashboard = ({ user, onAuthError }) => {
                 </div>
               </a>
 
+              <a
+                href="/clients/import-export"
+                className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+              >
+                <Upload className="w-8 h-8 text-purple-600" />
+                <div>
+                  <p className="font-medium text-gray-900">Import/Export Clientes</p>
+                  <p className="text-sm text-gray-600">Gerenciar dados em massa via CSV</p>
+                </div>
+              </a>
+
               {user.role === 'admin' && (
                 <a
                   href="/price-table"
