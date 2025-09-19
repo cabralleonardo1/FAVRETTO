@@ -819,7 +819,7 @@ Company EN,Contact EN,(11) 99999-2222,en@test.com,Street EN 456,Rio de Janeiro,R
                     "CSV Import - No Authentication (Should Fail)",
                     "POST",
                     "clients/import",
-                    401,  # or 403
+                    403,  # 403 is correct for FastAPI
                     files=files,
                     token=None
                 )
