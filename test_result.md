@@ -379,7 +379,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "All seller and budget functionality tested"
+    - "CSV Import/Export functionality testing completed"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
