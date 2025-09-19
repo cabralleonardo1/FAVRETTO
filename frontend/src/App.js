@@ -13,6 +13,7 @@ import SellersManager from './components/SellersManager';
 import PriceTableManager from './components/PriceTableManager';
 import BudgetCreator from './components/BudgetCreator';
 import BudgetsList from './components/BudgetsList';
+import ClientsImportExport from './components/ClientsImportExport';
 import CommissionsManager from './components/CommissionsManager';
 import Navbar from './components/Navbar';
 
