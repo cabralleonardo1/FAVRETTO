@@ -221,6 +221,234 @@ const ClientsManager = ({ onAuthError }) => {
     setEditingClient(null);
   };
 
+  const renderDeleteDialog = () => {
+    switch (deleteStep) {
+      case 'confirm':
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center space-x-2">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <span>Confirmar Exclusão em Massa</span>
+              </DialogTitle>
+              <DialogDescription>
+                Você está prestes a excluir {selectedClients.size} cliente(s). Esta ação não pode ser desfeita.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-start space-x-2">
+                  <Shield className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-yellow-800">Verificação de Segurança</h4>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      Vamos verificar se existem orçamentos ou outras dependências associadas aos clientes selecionados.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={clearSelection}>
+                  Cancelar
+                </Button>
+                <Button onClick={checkDependencies} className="bg-yellow-600 hover:bg-yellow-700">
+                  Verificar Dependências
+                </Button>
+              </div>
+            </div>
+          </>
+        );
+
+      case 'dependencies':
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle>Análise de Dependências</DialogTitle>
+              <DialogDescription>
+                Resultado da verificação para {selectedClients.size} cliente(s)
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {dependenciesData.clients_with_dependencies > 0 ? (
+                <>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-start space-x-2">
+                      <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-red-800">Dependências Encontradas</h4>
+                        <p className="text-sm text-red-700 mt-1">
+                          {dependenciesData.clients_with_dependencies} cliente(s) possuem {dependenciesData.total_budgets} orçamento(s) associado(s).
+                        </p>
+                        {dependenciesData.total_approved_budgets > 0 && (
+                          <p className="text-sm text-red-700 font-medium">
+                            {dependenciesData.total_approved_budgets} orçamentos aprovados (Total: R$ {dependenciesData.total_budget_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-gray-900">Detalhes por Cliente:</h5>
+                    {dependenciesData.details.map((client, index) => (
+                      <div key={index} className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-gray-900">{client.client_name}</p>
+                            <div className="text-sm text-gray-600 space-y-1">
+                              {client.messages.map((msg, idx) => (
+                                <p key={idx}>• {msg}</p>
+                              ))}
+                            </div>
+                          </div>
+                          {client.total_value > 0 && (
+                            <div className="text-right">
+                              <p className="text-sm font-medium text-green-600">
+                                R$ {client.total_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="force-delete"
+                        checked={forceDelete}
+                        onChange={(e) => setForceDelete(e.target.checked)}
+                        className="rounded border-gray-300"
+                      />
+                      <label htmlFor="force-delete" className="text-sm font-medium text-orange-800">
+                        Forçar exclusão (excluir clientes e todos os orçamentos associados)
+                      </label>
+                    </div>
+                    <p className="text-xs text-orange-700 mt-1">
+                      ⚠️ Esta ação irá excluir permanentemente todos os orçamentos dos clientes selecionados.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-2">
+                    <CheckSquare className="w-5 h-5 text-green-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-green-800">Nenhuma Dependência Encontrada</h4>
+                      <p className="text-sm text-green-700 mt-1">
+                        Os clientes selecionados podem ser excluídos com segurança.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setDeleteStep('confirm')}>
+                  Voltar
+                </Button>
+                <Button
+                  onClick={executeBulkDelete}
+                  variant="destructive"
+                  disabled={dependenciesData.clients_with_dependencies > 0 && !forceDelete}
+                >
+                  <Trash className="w-4 h-4 mr-2" />
+                  Confirmar Exclusão
+                </Button>
+              </div>
+            </div>
+          </>
+        );
+
+      case 'processing':
+        return (
+          <>
+            <DialogHeader>
+              <DialogTitle>Processando Exclusão</DialogTitle>
+              <DialogDescription>
+                Aguarde enquanto processamos a exclusão dos clientes...
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          </>
+        );
+
+      default:
+        if (deleteResults) {
+          return (
+            <>
+              <DialogHeader>
+                <DialogTitle>Resultado da Exclusão</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div className={`p-4 rounded-lg ${deleteResults.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                  <div className="flex items-start space-x-2">
+                    {deleteResults.success ? (
+                      <CheckSquare className="w-5 h-5 text-green-600 mt-0.5" />
+                    ) : (
+                      <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
+                    )}
+                    <div>
+                      <h4 className={`font-medium ${deleteResults.success ? 'text-green-800' : 'text-red-800'}`}>
+                        {deleteResults.success ? 'Exclusão Concluída' : 'Exclusão com Problemas'}
+                      </h4>
+                      <div className="text-sm mt-1">
+                        <p>Total solicitado: {deleteResults.total_requested}</p>
+                        <p>Excluídos com sucesso: {deleteResults.deleted_count}</p>
+                        <p>Ignorados: {deleteResults.skipped_count}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {deleteResults.errors.length > 0 && (
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-red-800">Erros:</h5>
+                    <div className="max-h-32 overflow-y-auto space-y-1">
+                      {deleteResults.errors.map((error, index) => (
+                        <p key={index} className="text-sm text-red-600">
+                          {error.client_name}: {error.message}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {deleteResults.warnings.length > 0 && (
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-yellow-800">Avisos:</h5>
+                    <div className="max-h-32 overflow-y-auto space-y-1">
+                      {deleteResults.warnings.map((warning, index) => (
+                        <p key={index} className="text-sm text-yellow-600">
+                          {warning.client_name}: {warning.message}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <Button onClick={clearSelection}>
+                    Fechar
+                  </Button>
+                </div>
+              </div>
+            </>
+          );
+        }
+        return null;
+    }
+  };
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
