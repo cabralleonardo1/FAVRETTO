@@ -389,6 +389,64 @@ const ClientsManager = ({ onAuthError }) => {
         </CardContent>
       </Card>
 
+      {/* Bulk Actions */}
+      {filteredClients.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={toggleAllClients}
+                    className="flex items-center justify-center w-5 h-5 border border-gray-300 rounded hover:bg-gray-100"
+                  >
+                    {selectedClients.size === filteredClients.length && filteredClients.length > 0 ? (
+                      <CheckSquare className="w-4 h-4 text-blue-600" />
+                    ) : selectedClients.size > 0 ? (
+                      <Square className="w-4 h-4 text-blue-600 opacity-50" />
+                    ) : (
+                      <Square className="w-4 h-4 text-gray-400" />
+                    )}
+                  </button>
+                  <span className="text-sm font-medium">
+                    {selectedClients.size === 0 
+                      ? 'Selecionar todos'
+                      : `${selectedClients.size} selecionado(s)`
+                    }
+                  </span>
+                </div>
+                
+                {selectedClients.size > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedClients(new Set())}
+                  >
+                    Limpar seleção
+                  </Button>
+                )}
+              </div>
+
+              {selectedClients.size > 0 && (
+                <div className="space-x-2">
+                  <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Excluir Selecionados ({selectedClients.size})
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      {renderDeleteDialog()}
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Clients List */}
       <Card>
         <CardHeader>
