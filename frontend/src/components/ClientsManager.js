@@ -194,19 +194,30 @@ const ClientsManager = ({ onAuthError }) => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (clientId) => {
-    if (!window.confirm('Tem certeza que deseja excluir este cliente?')) {
+  const handleDelete = async (clientId, forceDelete = false) => {
+    if (!forceDelete && !window.confirm('Tem certeza que deseja excluir este cliente?')) {
       return;
     }
 
     try {
-      await axios.delete(`${API}/clients/${clientId}`);
+      const params = forceDelete ? '?force_delete=true' : '';
+      await axios.delete(`${API}/clients/${clientId}${params}`);
       toast.success('Cliente excluído com sucesso!');
       fetchClients();
     } catch (error) {
       console.error('Error deleting client:', error);
       if (error.response?.status === 401 && onAuthError) {
         onAuthError();
+      } else if (error.response?.status === 400 && error.response?.data?.detail?.includes('orçamento')) {
+        // Show dependencies error with option to force delete
+        const message = error.response.data.detail;
+        const forceConfirm = window.confirm(
+          `${message}\n\nDeseja excluir o cliente e todos os orçamentos associados? Esta ação não pode ser desfeita.`
+        );
+        
+        if (forceConfirm) {
+          handleDelete(clientId, true); // Recursive call with force delete
+        }
       } else {
         const message = error.response?.data?.detail || 'Erro ao excluir cliente';
         toast.error(message);
