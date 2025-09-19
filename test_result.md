@@ -214,6 +214,18 @@
 user_problem_statement: "Testar especificamente a funcionalidade de exclusão de clientes corrigida"
 
 backend:
+  - task: "Individual Client Deletion Endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ DELETE /api/clients/{client_id} FULLY TESTED AND WORKING: Individual client deletion functionality working perfectly. ✅ Normal deletion: Successfully deletes clients without dependencies (0 budgets deleted). ✅ Dependency prevention: Correctly prevents deletion when client has associated budgets, returning detailed error message 'Cliente possui X orçamento(s) associado(s). Use force_delete=true para excluir mesmo assim.' ✅ Force deletion: Successfully deletes clients with dependencies when force_delete=true parameter is used, including cascading deletion of associated budgets. ✅ Validation: Properly handles non-existent clients (404 error), invalid parameters (422 error), and missing authentication (403 error). ✅ Parameter handling: Correctly processes force_delete parameter (true/false/invalid values). ✅ Audit logging: Deletion operations trigger audit logging as intended. ✅ Response structure: Returns proper success messages and budgets_deleted count."
+
   - task: "Bulk Delete Dependencies Check Endpoint"
     implemented: true
     working: true
