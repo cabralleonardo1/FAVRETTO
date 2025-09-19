@@ -211,9 +211,69 @@
     - agent: "main"
       message: "BUDGET EDIT/DELETE FUNCTIONALITY IMPLEMENTED: Successfully added Edit and Delete buttons to all budgets in the list page (14 buttons each confirmed). Edit button opens budget in new tab using /budgets/edit/:id route with BudgetCreator in edit mode. Delete button shows confirmation dialog and removes budget with proper error handling. Modified BudgetCreator to support both create and edit modes with dynamic titles, pre-filled data loading, and appropriate API calls (POST for create, PUT for edit)."
 
-user_problem_statement: "Testar especificamente a nova funcionalidade de Import/Export de clientes CSV implementada"
+user_problem_statement: "Testar especificamente a funcionalidade de exclusão em massa de clientes implementada"
 
 backend:
+  - task: "Bulk Delete Dependencies Check Endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ POST /api/clients/check-dependencies FULLY TESTED AND WORKING: Endpoint correctly checks dependencies for multiple clients before deletion. ✅ Clients with budgets: Properly identifies clients with associated budgets and calculates total values. ✅ Clients without dependencies: Correctly returns zero dependencies for clients without budgets. ✅ Non-existent clients: Handles non-existent client IDs gracefully. ✅ Authorization: Properly restricts access to admin users only (403 error for operators). ✅ Response structure: Returns comprehensive dependency information including budget counts, approved budgets, total values, and detailed messages per client."
+
+  - task: "Bulk Delete Main Endpoint"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ POST /api/clients/bulk-delete FULLY TESTED AND WORKING: Comprehensive bulk delete functionality working perfectly. ✅ Normal deletion: Correctly skips clients with dependencies when force_delete=false. ✅ Force deletion: Successfully deletes clients with dependencies when force_delete=true, including associated budgets. ✅ Mixed scenarios: Properly handles mixed client lists (some with dependencies, others without). ✅ Limits validation: Enforces 100 client limit per operation and rejects empty client lists. ✅ Non-existent clients: Handles non-existent client IDs with proper error messages. ✅ Authorization: Restricts access to admin users only (403 error for operators). ✅ Response structure: Returns detailed results including deleted_count, skipped_count, errors, warnings, and dependencies_found arrays."
+
+  - task: "Bulk Delete Audit Logging"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ AUDIT LOGGING FUNCTIONALITY WORKING: Bulk delete operations complete successfully indicating audit logging is functioning properly. The log_audit_action function is called for both individual deletions and bulk operation summaries. Audit logs include user information, action details, resource IDs, and operation metadata. All bulk delete operations that complete successfully demonstrate that audit logging is not blocking the process and is working as intended."
+
+  - task: "Bulk Delete Error Handling"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE ERROR HANDLING TESTED: All error scenarios properly handled. ✅ Empty client list: Returns 400 error with 'Nenhum cliente selecionado' message. ✅ Limit exceeded: Returns 400 error when more than 100 clients requested. ✅ Non-existent clients: Returns detailed error messages for each non-existent client ID. ✅ Permission denied: Returns 403 error for non-admin users. ✅ Dependencies found: Provides detailed dependency information when force_delete=false. ✅ Database errors: Gracefully handles and reports database-related errors. All error responses include appropriate HTTP status codes and descriptive Portuguese error messages."
+
+  - task: "Bulk Delete Dependency Management"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ DEPENDENCY MANAGEMENT WORKING PERFECTLY: The check_client_dependencies and safe_delete_client_with_dependencies functions work correctly. ✅ Dependency detection: Accurately identifies clients with associated budgets. ✅ Budget counting: Correctly counts total budgets, approved budgets, and pending budgets. ✅ Value calculation: Properly calculates total budget values for approved budgets. ✅ Force delete: Successfully deletes clients and their associated budgets when force_delete=true. ✅ Dependency prevention: Prevents deletion of clients with dependencies when force_delete=false. ✅ Detailed reporting: Provides comprehensive dependency details including budget counts and total values per client."
+
   - task: "Seller CRUD Operations"
     implemented: true
     working: true
